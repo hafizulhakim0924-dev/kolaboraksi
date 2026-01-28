@@ -1,0 +1,192 @@
+[22-Nov-2025 19:50:39 Asia/Jakarta] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 106
+[22-Nov-2025 19:53:15 Asia/Jakarta] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 105
+[23-Nov-2025 02:23:18 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/index.php:28
+Stack trace:
+#0 /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/index.php(91): getAllCampaignData(Object(mysqli))
+#1 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/index.php on line 28
+[15-Dec-2025 05:55:54 Asia/Jakarta] PHP Notice:  Undefined index: tagetcapaiandonasi in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 110
+[15-Dec-2025 05:56:54 Asia/Jakarta] PHP Notice:  Undefined index: tagetcapaiandonasi in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 110
+[15-Dec-2025 05:58:08 Asia/Jakarta] PHP Notice:  Undefined index: tagetcapaiandonasi in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 110
+[15-Dec-2025 06:10:10 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 170
+[15-Dec-2025 06:10:10 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 173
+[15-Dec-2025 06:10:10 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 222
+[15-Dec-2025 06:10:26 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 170
+[15-Dec-2025 06:10:26 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 173
+[15-Dec-2025 06:10:26 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 222
+[15-Dec-2025 06:11:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 170
+[15-Dec-2025 06:11:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 173
+[15-Dec-2025 06:11:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 222
+[15-Dec-2025 06:16:06 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 170
+[15-Dec-2025 06:16:06 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 173
+[15-Dec-2025 06:16:06 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 222
+[15-Dec-2025 06:16:22 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 170
+[15-Dec-2025 06:16:22 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 173
+[15-Dec-2025 06:16:22 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner/partner_dashboard.php on line 222
+[15-Dec-2025 06:21:46 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:21:46 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:21:46 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:21:59 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:21:59 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:21:59 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:22:37 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:22:37 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:22:37 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:22:56 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:22:56 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:22:56 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:23:20 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:23:20 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:23:20 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:23:34 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:23:34 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:23:34 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:23:45 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:23:45 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:23:45 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:25:54 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:25:54 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:25:54 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:26:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:26:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:26:09 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:27:01 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:27:01 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:27:01 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 06:45:36 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 170
+[15-Dec-2025 06:45:36 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 173
+[15-Dec-2025 06:45:36 Asia/Jakarta] PHP Notice:  Undefined variable: partner_nama in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 222
+[15-Dec-2025 07:18:55 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW), expecting ')' in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/index.php on line 103
+[15-Dec-2025 07:19:01 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW), expecting ')' in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/index.php on line 103
+[15-Dec-2025 07:19:35 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW), expecting ')' in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/index.php on line 103
+[15-Dec-2025 07:20:50 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW), expecting ')' in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/index.php on line 103
+[15-Dec-2025 07:20:52 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW), expecting ')' in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/index.php on line 103
+[15-Dec-2025 12:44:23 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 12:45:09 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 12:45:20 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 12:47:53 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:222) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 12:48:12 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:222) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 12:48:31 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:222) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 12:55:43 Asia/Jakarta] PHP Warning:  mysqli::prepare(): Couldn't fetch mysqli in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 248
+[15-Dec-2025 12:55:43 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:249
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 249
+[15-Dec-2025 12:59:43 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:244
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 244
+[15-Dec-2025 12:59:45 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:244
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 244
+[15-Dec-2025 13:00:57 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:247
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 247
+[15-Dec-2025 13:02:03 Asia/Jakarta] PHP Notice:  Undefined variable: progress in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 1558
+[15-Dec-2025 13:02:03 Asia/Jakarta] PHP Notice:  Undefined variable: terkumpul in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 1565
+[15-Dec-2025 13:02:03 Asia/Jakarta] PHP Notice:  Undefined variable: remaining in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 1571
+[15-Dec-2025 13:02:03 Asia/Jakarta] PHP Notice:  Undefined variable: target in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 1577
+[15-Dec-2025 14:20:44 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:135) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 14:29:31 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:135) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 14:30:31 Asia/Jakarta] PHP Fatal error:  Cannot redeclare formatRupiah() (previously declared in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:137) in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/tripay_config.php on line 43
+[15-Dec-2025 14:38:57 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:40:29 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:41:36 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:42:31 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:43:07 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:44:31 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:45:32 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 14:46:37 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 221
+[15-Dec-2025 15:37:10 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[15-Dec-2025 15:38:09 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[15-Dec-2025 15:44:48 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php:55
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php on line 55
+[15-Dec-2025 15:45:08 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php:55
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php on line 55
+[29-Dec-2025 10:23:43 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php:55
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php on line 55
+[29-Dec-2025 10:43:26 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php:55
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kesehatan.php on line 55
+[29-Dec-2025 10:43:44 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:45:53 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:45:58 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:46:21 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:46:53 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:27 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:34 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:36 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:40 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:41 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:47:43 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:50:05 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 10:53:13 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 10:55:43 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 14 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 97
+[29-Dec-2025 10:59:18 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 11:01:05 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 15 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:119
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 119
+[29-Dec-2025 11:02:30 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 15 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:120
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 120
+[29-Dec-2025 11:03:05 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Cannot pass parameter 15 by reference in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php:120
+Stack trace:
+#0 {main}
+  thrown in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/kampanye-detail.php on line 120
+[29-Dec-2025 11:47:26 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 19:44:11 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 19:45:48 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 19:55:12 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 19:56:43 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 19:58:05 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 20:00:46 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 20:02:05 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[29-Dec-2025 20:06:09 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223
+[14-Jan-2026 08:54:14 Asia/Jakarta] PHP Notice:  Undefined variable: organizer in /home/rank3598/public_html/kolaboraksi.app.rangkiangpedulinegeri.org/partner_dashboard.php on line 223

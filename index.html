@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KolaborAksi - Platform donasi online untuk membantu sesama. Galang dana, donasi, dan berbuat baik bersama jutaan orang Indonesia.">
+    <title>KolaborAksi - Platform Donasi Online Indonesia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #E8F5F2 0%, #F0FFFE 25%, #FFFFFF 50%, #F0FFFE 75%, #E8F5F2 100%);
+            background-attachment: fixed;
+            color: #333;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: transparent;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .content-container {
+            position: relative;
+            width: 100%;
+            min-height: calc(100vh - 70px);
+            padding-bottom: 70px;
+            background: transparent;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-csr {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #17a697;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .login-csr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 99;
+            font-size: 12px;
+            color: #17a697;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .refresh-indicator.show {
+            opacity: 1;
+        }
+
+        /* ✨ SIMPLIFIED: Banner Section - Iframe */
+        .banner-section {
+            position: relative;
+            overflow: visible;
+            background: transparent;
+            padding: 16px;
+            padding-bottom: 0;
+            margin-bottom: 8px;
+            border-radius: 0;
+            width: 100%;
+            min-height: 200px;
+        }
+
+        .banner-section iframe {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .category-section {
+            background: rgba(255, 255, 255, 0.75);
+            padding: 20px 20px 15px;
+            margin-top: 8px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(23, 166, 151, 0.08);
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .category-item {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .category-item:active {
+            transform: scale(0.92);
+        }
+
+        .category-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            position: relative;
+        }
+
+        .category-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .category-name {
+            font-size: 11px;
+            font-weight: 500;
+            color: #555;
+            line-height: 1.2;
+        }
+
+        .zakat-calculator-card {
+            background: linear-gradient(135deg, #17a697 0%, #0f6f5f 100%);
+            margin: 8px 16px 0;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(23, 166, 151, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .zakat-calculator-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(23, 166, 151, 0.3);
+        }
+
+        .zakat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .zakat-icon {
+            font-size: 32px;
+        }
+
+        .zakat-card-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .zakat-card-content p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .zakat-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .zakat-type-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.75);
+            margin-top: 8px;
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(23, 166, 151, 0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F1F1F;
+        }
+
+        .section-link {
+            font-size: 13px;
+            color: #17a697;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .campaign-slider {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .campaign-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .campaign-card-small {
+            min-width: 180px;
+            max-width: 180px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #F0F0F0;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .campaign-card-small:active {
+            transform: scale(0.97);
+        }
+
+        .campaign-image-small {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+        }
+
+        .campaign-image-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .campaign-content-small {
+            padding: 10px;
+        }
+
+        .campaign-title-small {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+            color: #1F1F1F;
+            min-height: 34px;
+        }
+
+        .campaign-organizer-small {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .progress-bar-small {
+            width: 100%;
+            height: 4px;
+            background: #F0F0F0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #17a697;
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+
+        .campaign-stats-small {
+            font-size: 10px;
+        }
+
+        .stat-raised-small {
+            font-weight: 700;
+            color: #1F1F1F;
+        }
+
+        .rekomendasi-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rekomendasi-card {
+            display: flex;
+            gap: 12px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #F0F0F0;
+            padding: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .rekomendasi-card:active {
+            transform: scale(0.98);
+        }
+
+        .rekomendasi-image {
+            width: 140px;
+            height: 100px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+        }
+
+        .rekomendasi-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .rekomendasi-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .rekomendasi-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+            color: #1F1F1F;
+        }
+
+        .rekomendasi-organizer {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .verified-badge {
+            color: #17a697;
+            font-size: 11px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #F0F0F0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .rekomendasi-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .stat-raised {
+            font-weight: 700;
+            color: #1F1F1F;
+        }
+
+        .stat-days {
+            color: #888;
+        }
+
+        /* ✨ SIMPLIFIED: Rekomendasi Banner Section - Iframe */
+        .rekomendasi-banner-section {
+            background: transparent;
+            margin-top: 8px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .rekomendasi-banner-header {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rekomendasi-banner-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F1F1F;
+            margin: 0;
+        }
+
+        .donor-prayers-section {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+            margin-top: 8px;
+            padding: 30px 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(23, 166, 151, 0.1);
+            box-shadow: 0 8px 32px rgba(23, 166, 151, 0.05);
+        }
+
+        .donor-prayers-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .donor-prayers-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .dove-image {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .donor-prayers-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F1F1F;
+            margin: 0;
+        }
+
+        .donor-prayers-subtitle {
+            font-size: 13px;
+            color: #888;
+            margin: 8px 0 0 0;
+        }
+
+        .donor-prayers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .donor-prayer-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #F0F0F0;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .donor-prayer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(23, 166, 151, 0.15);
+            border-color: #17a697;
+        }
+
+        .donor-prayer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #F0F0F0;
+        }
+
+        .donor-prayer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #17a697 0%, #0f6f5f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .donor-prayer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .donor-prayer-info {
+            flex: 1;
+        }
+
+        .donor-prayer-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1F1F1F;
+            margin-bottom: 2px;
+        }
+
+        .donor-prayer-badge {
+            display: inline-block;
+            background: rgba(23, 166, 151, 0.1);
+            color: #17a697;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 20px;
+            margin-bottom: 4px;
+        }
+
+        .donor-prayer-text {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
+            flex: 1;
+            font-style: italic;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .donor-prayer-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .donor-prayer-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #F5F5F5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .donor-prayer-footer-icon {
+            color: #17a697;
+            font-size: 14px;
+        }
+
+        .donor-prayer-footer-text {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .about-section {
+            background: rgba(255, 255, 255, 0.75);
+            margin-top: 8px;
+            padding: 30px 20px;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(23, 166, 151, 0.08);
+        }
+
+        .about-logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .about-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F1F1F;
+            margin-bottom: 12px;
+        }
+
+        .about-content {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 8px;
+            background: rgba(23, 166, 151, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(23, 166, 151, 0.2);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #17a697;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -4px 12px rgba(23, 166, 151, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0;
+            z-index: 1000;
+            border-top: 1px solid rgba(23, 166, 151, 0.1);
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #888;
+            font-size: 9px;
+            flex: 1;
+            padding: 4px 3px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            background: none;
+            border: none;
+        }
+
+        .nav-item.active {
+            color: #17a697;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1F1F1F;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: #17a697;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .zakat-modal-content {
+            max-width: 500px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .zakat-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .zakat-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .zakat-tab {
+            padding: 8px 16px;
+            background: #F0F0F0;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .zakat-tab.active {
+            background: #17a697;
+            color: white;
+        }
+
+        .zakat-calculator-content {
+            display: none;
+        }
+
+        .zakat-calculator-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #DDD;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #17a697;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 14px;
+            background: #17a697;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .calculate-btn:hover {
+            background: #0f6f5f;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #E8F5F2;
+            border-radius: 12px;
+            border: 2px solid #17a697;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #17a697;
+        }
+
+        .info-text {
+            font-size: 11px;
+            color: #888;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .category-grid {
+                gap: 12px;
+            }
+            
+            .rekomendasi-image {
+                width: 120px;
+                height: 90px;
+            }
+
+            .donor-prayers-container {
+                grid-template-columns: 1fr;
+            }
+
+            .donor-prayer-card {
+                padding: 16px;
+            }
+
+            .donor-prayers-title {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="refresh-indicator" id="refreshIndicator">
+            <i class="fas fa-sync-alt fa-spin"></i> Mengupdate...
+        </div>
+
+        <button class="login-csr" onclick="window.location.href='admin.php'">
+            <i class="fas fa-user-shield"></i> Admin Panel
+        </button>
+
+        <div class="content-container">
+            <div id="tab-beranda" class="tab-content active">
+                
+                <!-- ✨ SIMPLIFIED: Banner Slider dengan banners.html -->
+                <div class="banner-section">
+                    <iframe 
+                        src="banners.html" 
+                        style="width: 100%; height: 200px; border: none; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+                        frameborder="0"
+                        scrolling="no"
+                        title="KolaborAksi Banner Slider">
+                    </iframe>
+                </div>
+
+                <!-- Zakat Calculator Card -->
+                <div class="zakat-calculator-card" onclick="openZakatCalculator()">
+                    <div class="zakat-card-header">
+                        <div class="zakat-icon">🕌</div>
+                        <div class="zakat-card-content">
+                            <h3>Kalkulator Zakat</h3>
+                            <p>Hitung zakat Anda dengan mudah dan cepat</p>
+                        </div>
+                    </div>
+                    <div class="zakat-types">
+                        <div class="zakat-type-item">Zakat Mal</div>
+                        <div class="zakat-type-item">Zakat Fitrah</div>
+                        <div class="zakat-type-item">Zakat Emas</div>
+                    </div>
+                </div>
+
+                <!-- Category Section -->
+                <div class="category-section">
+                    <div class="category-grid" id="categoryGrid">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Kampanye Terbaru -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">🔥 Kampanye Terbaru</h2>
+                    </div>
+                    <div class="campaign-slider" id="latestCampaigns">
+                        <!-- Campaigns will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Rekomendasi Event -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">🎉 Rekomendasi Event</h2>
+                    </div>
+                    <div class="campaign-slider" id="eventRecommendations">
+                        <!-- Events will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Kategori Favorit -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">⭐ Kategori Favorit</h2>
+                    </div>
+                    <div class="campaign-slider" id="favoritCategories">
+                        <!-- Favorites will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- ✨ SIMPLIFIED: Rekomendasi Banner Section dengan banners.html -->
+                <div class="rekomendasi-banner-section">
+                    <div class="rekomendasi-banner-header">
+                        <h2 class="rekomendasi-banner-title">📢 Rekomendasi Banner</h2>
+                    </div>
+                    <iframe 
+                        src="banners.html" 
+                        style="width: 100%; height: 200px; border: none; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+                        frameborder="0"
+                        scrolling="no"
+                        title="KolaborAksi Rekomendasi Banner">
+                    </iframe>
+                </div>
+
+                <!-- Rekomendasi Untuk Anda -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">💡 Rekomendasi Untuk Anda</h2>
+                    </div>
+                    <div class="rekomendasi-list" id="recommendationsList">
+                        <!-- Recommendations will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Donor Prayers Section -->
+                <div class="donor-prayers-section">
+                    <div class="donor-prayers-header">
+                        <div class="donor-prayers-title-container">
+                            <div class="dove-image">
+                                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="30" cy="30" r="25" fill="none" stroke="#17a697" stroke-width="2"/>
+                                    <path d="M30 20C24.48 20 20 24.48 20 30C20 35.52 24.48 40 30 40C35.52 40 40 35.52 40 30C40 24.48 35.52 20 30 20ZM30 36C26.69 36 24 33.31 24 30C24 26.69 26.69 24 30 24C33.31 24 36 26.69 36 30C36 33.31 33.31 36 30 36Z" fill="#17a697"/>
+                                    <path d="M28 33C27.45 33 27 33.45 27 34C27 34.55 27.45 35 28 35H32C32.55 35 33 34.55 33 34C33 33.45 32.55 33 32 33H28Z" fill="#17a697"/>
+                                </svg>
+                            </div>
+                            <h2 class="donor-prayers-title">💬 Doa dari Donatur</h2>
+                        </div>
+                        <p class="donor-prayers-subtitle">Doa-doa mulia dari para dermawan untuk sesama</p>
+                    </div>
+                    
+                    <div class="donor-prayers-container" id="donorPrayersContainer">
+                        <!-- Donor prayers will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- About Section -->
+                <div class="about-section">
+                    <div class="about-logo">💝</div>
+                    <h2 class="about-title">Tentang KolaborAksi.com</h2>
+                    <p class="about-content">
+                        KolaborAksi adalah platform donasi online terpercaya yang menghubungkan para donatur dengan mereka yang membutuhkan bantuan. Kami berkomitmen untuk memberikan transparansi penuh dalam setiap kampanye dan memastikan donasi Anda tersalurkan dengan tepat.
+                    </p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">5M+</div>
+                            <div class="stat-label">Donatur</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">50K+</div>
+                            <div class="stat-label">Kampanye</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">2T+</div>
+                            <div class="stat-label">Dana Terkumpul</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-jelajah" class="tab-content">
+                <div class="section" style="margin-bottom: 80px;">
+                    <h2 class="section-title" style="margin-bottom: 20px;">🔍 Jelajahi Semua Kampanye</h2>
+                    <p style="text-align: center; color: #888; padding: 40px 20px;">
+                        <i class="fas fa-construction" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                        Halaman Jelajah sedang dalam pengembangan
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchTab('beranda')">
+                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                <div>Beranda</div>
+            </button>
+            <button class="nav-item" onclick="switchTab('jelajah')">
+                <div class="nav-icon"><i class="fas fa-search"></i></div>
+                <div>Jelajah</div>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal Dalam Pengembangan -->
+    <div id="devModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-icon">🚧</div>
+            <h3 class="modal-title">Dalam Pengembangan</h3>
+            <p class="modal-text">Fitur ini sedang dalam tahap pengembangan dan akan segera hadir. Terima kasih atas pengertiannya!</p>
+            <button class="modal-btn" onclick="closeModal()">Mengerti</button>
+        </div>
+    </div>
+
+    <!-- Zakat Calculator Modal -->
+    <div id="zakatModal" class="modal" onclick="closeZakatModal()">
+        <div class="modal-content zakat-modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="modal-title" style="margin: 0;">🕌 Kalkulator Zakat</h3>
+                <button onclick="closeZakatModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
+            </div>
+
+            <div class="zakat-tabs">
+                <button class="zakat-tab active" onclick="switchZakatTab('mal')">Zakat Mal</button>
+                <button class="zakat-tab" onclick="switchZakatTab('fitrah')">Zakat Fitrah</button>
+                <button class="zakat-tab" onclick="switchZakatTab('emas')">Zakat Emas</button>
+                <button class="zakat-tab" onclick="switchZakatTab('perak')">Zakat Perak</button>
+                <button class="zakat-tab" onclick="switchZakatTab('penghasilan')">Zakat Penghasilan</button>
+            </div>
+
+            <!-- Zakat Mal Calculator -->
+            <div id="calc-mal" class="zakat-calculator-content active">
+                <div class="form-group">
+                    <label class="form-label">Total Harta (Rp)</label>
+                    <input type="number" id="input-mal" class="form-input" placeholder="Contoh: 100000000">
+                </div>
+                <button class="calculate-btn" onclick="calculateZakatMal()">Hitung Zakat Mal</button>
+                <div id="result-mal" class="result-box">
+                    <div class="result-label">Zakat yang harus dibayarkan:</div>
+                    <div class="result-value" id="value-mal">Rp 0</div>
+                    <p class="info-text">Nisab zakat mal adalah 85 gram emas. Zakat mal adalah 2.5% dari total harta yang telah mencapai nisab dan haul (1 tahun).</p>
+                </div>
+            </div>
+
+            <!-- Zakat Fitrah Calculator -->
+            <div id="calc-fitrah" class="zakat-calculator-content">
+                <div class="form-group">
+                    <label class="form-label">Jumlah Jiwa</label>
+                    <input type="number" id="input-fitrah-jiwa" class="form-input" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga Beras per Liter (Rp)</label>
+                    <input type="number" id="input-fitrah-harga" class="form-input" placeholder="Contoh: 15000">
+                </div>
+                <button class="calculate-btn" onclick="calculateZakatFitrah()">Hitung Zakat Fitrah</button>
+                <div id="result-fitrah" class="result-box">
+                    <div class="result-label">Zakat Fitrah yang harus dibayarkan:</div>
+                    <div class="result-value" id="value-fitrah">Rp 0</div>
+                    <p class="info-text">Zakat fitrah adalah 2.5 kg atau 3.5 liter beras per jiwa. Dibayarkan sebelum shalat Idul Fitri.</p>
+                </div>
+            </div>
+
+            <!-- Zakat Emas Calculator -->
+            <div id="calc-emas" class="zakat-calculator-content">
+                <div class="form-group">
+                    <label class="form-label">Jumlah Emas (gram)</label>
+                    <input type="number" id="input-emas-jumlah" class="form-input" placeholder="Contoh: 100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga Emas per Gram (Rp)</label>
+                    <input type="number" id="input-emas-harga" class="form-input" placeholder="Contoh: 1000000">
+                </div>
+                <button class="calculate-btn" onclick="calculateZakatEmas()">Hitung Zakat Emas</button>
+                <div id="result-emas" class="result-box">
+                    <div class="result-label">Zakat Emas yang harus dibayarkan:</div>
+                    <div class="result-value" id="value-emas">Rp 0</div>
+                    <p class="info-text">Nisab emas adalah 85 gram. Zakatnya 2.5% dari total nilai emas yang dimiliki.</p>
+                </div>
+            </div>
+
+            <!-- Zakat Perak Calculator -->
+            <div id="calc-perak" class="zakat-calculator-content">
+                <div class="form-group">
+                    <label class="form-label">Jumlah Perak (gram)</label>
+                    <input type="number" id="input-perak-jumlah" class="form-input" placeholder="Contoh: 600">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga Perak per Gram (Rp)</label>
+                    <input type="number" id="input-perak-harga" class="form-input" placeholder="Contoh: 15000">
+                </div>
+                <button class="calculate-btn" onclick="calculateZakatPerak()">Hitung Zakat Perak</button>
+                <div id="result-perak" class="result-box">
+                    <div class="result-label">Zakat Perak yang harus dibayarkan:</div>
+                    <div class="result-value" id="value-perak">Rp 0</div>
+                    <p class="info-text">Nisab perak adalah 595 gram. Zakatnya 2.5% dari total nilai perak yang dimiliki.</p>
+                </div>
+            </div>
+
+            <!-- Zakat Penghasilan Calculator -->
+            <div id="calc-penghasilan" class="zakat-calculator-content">
+                <div class="form-group">
+                    <label class="form-label">Penghasilan per Bulan (Rp)</label>
+                    <input type="number" id="input-penghasilan" class="form-input" placeholder="Contoh: 10000000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga Beras per Kg (Rp)</label>
+                    <input type="number" id="input-penghasilan-beras" class="form-input" placeholder="Contoh: 12000">
+                </div>
+                <button class="calculate-btn" onclick="calculateZakatPenghasilan()">Hitung Zakat Penghasilan</button>
+                <div id="result-penghasilan" class="result-box">
+                    <div class="result-label">Zakat Penghasilan yang harus dibayarkan:</div>
+                    <div class="result-value" id="value-penghasilan">Rp 0</div>
+                    <p class="info-text">Nisab zakat penghasilan adalah setara dengan 520 kg beras. Zakatnya 2.5% dari penghasilan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MAIN DATA LOADING ====================
+
+        // Load data from API
+        async function loadPageData() {
+            try {
+                const indicator = document.getElementById('refreshIndicator');
+                indicator.classList.add('show');
+
+                const response = await fetch('api.php?action=get_all_data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderCategories(data.categories);
+                    renderCampaigns(data.latest_campaigns, 'latestCampaigns');
+                    renderCampaigns(data.event_recommendations, 'eventRecommendations');
+                    renderCampaigns(data.favorite_categories, 'favoritCategories');
+                    renderRecommendations(data.recommendations);
+                    renderDonorPrayers(data.donor_prayers);
+                }
+
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 800);
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+            }
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+
+        function renderCategories(categories) {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const div = document.createElement('a');
+                div.href = cat.link || '#';
+                div.className = 'category-item';
+                div.innerHTML = `
+                    <div class="category-icon">
+                        <img src="${cat.icon}" alt="${cat.name}">
+                    </div>
+                    <div class="category-name">${cat.name}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderCampaigns(campaigns, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            campaigns.forEach(campaign => {
+                const card = document.createElement('a');
+                card.href = 'kampanye-detail.php?id=' + campaign.id;
+                card.className = 'campaign-card-small';
+                card.innerHTML = `
+                    <div class="campaign-image-small">
+                        ${campaign.image ? `<img src="${campaign.image}">` : campaign.emoji}
+                    </div>
+                    <div class="campaign-content-small">
+                        <h3 class="campaign-title-small">${campaign.title}</h3>
+                        <p class="campaign-organizer-small">
+                            <i class="fas fa-user-circle"></i>
+                            ${campaign.organizer}
+                        </p>
+                        <div class="progress-bar-small">
+                            <div class="progress-fill" style="width: ${campaign.progress}%;"></div>
+                        </div>
+                        <div class="campaign-stats-small">
+                            <div class="stat-raised-small">${campaign.amount}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRecommendations(recommendations) {
+            const list = document.getElementById('recommendationsList');
+            list.innerHTML = '';
+            
+            recommendations.forEach(rec => {
+                const card = document.createElement('a');
+                card.href = 'kampanye-detail.php?id=' + rec.id;
+                card.className = 'rekomendasi-card';
+                card.innerHTML = `
+                    <div class="rekomendasi-image">
+                        ${rec.image ? `<img src="${rec.image}">` : rec.emoji}
+                    </div>
+                    <div class="rekomendasi-content">
+                        <div>
+                            <h3 class="rekomendasi-title">${rec.title}</h3>
+                            <p class="rekomendasi-organizer">
+                                <i class="fas fa-user-circle"></i>
+                                ${rec.organizer}
+                                <i class="fas fa-check-circle verified-badge"></i>
+                            </p>
+                        </div>
+                        <div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${rec.progress}%;"></div>
+                            </div>
+                            <div class="rekomendasi-stats">
+                                <span class="stat-raised">${rec.amount}</span>
+                                <span class="stat-days">${rec.days_left}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function renderDonorPrayers(prayers) {
+            const container = document.getElementById('donorPrayersContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (!prayers || prayers.length === 0) return;
+            
+            prayers.forEach(prayer => {
+                const card = document.createElement('div');
+                card.className = 'donor-prayer-card';
+                
+                const initials = prayer.donor_name.split(' ').map(n => n[0]).join('').toUpperCase();
+                
+                card.innerHTML = `
+                    <div class="donor-prayer-header">
+                        <div class="donor-prayer-avatar">
+                            ${prayer.donor_image ? `<img src="${prayer.donor_image}" alt="${prayer.donor_name}">` : initials}
+                        </div>
+                        <div class="donor-prayer-info">
+                            <div class="donor-prayer-name">${prayer.donor_name}</div>
+                            <div class="donor-prayer-badge">💝 Dermawan</div>
+                        </div>
+                    </div>
+                    <div class="donor-prayer-icon">🙏</div>
+                    <p class="donor-prayer-text">"${prayer.prayer_text}"</p>
+                    <div class="donor-prayer-footer">
+                        <span class="donor-prayer-footer-icon">✨</span>
+                        <span class="donor-prayer-footer-text">Doa yang tulus dari hati</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // ==================== TAB & MODAL FUNCTIONS ====================
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeModal() {
+            document.getElementById('devModal').style.display = 'none';
+        }
+
+        function openZakatCalculator() {
+            document.getElementById('zakatModal').style.display = 'block';
+        }
+
+        function closeZakatModal() {
+            document.getElementById('zakatModal').style.display = 'none';
+        }
+
+        function switchZakatTab(type) {
+            document.querySelectorAll('.zakat-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.zakat-calculator-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('calc-' + type).classList.add('active');
+        }
+
+        // ==================== ZAKAT CALCULATOR FUNCTIONS ====================
+
+        function formatRupiah(amount) {
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        }
+
+        function calculateZakatMal() {
+            const harta = parseFloat(document.getElementById('input-mal').value) || 0;
+            const nisab = 85 * 1000000;
+            
+            if (harta >= nisab) {
+                const zakat = harta * 0.025;
+                document.getElementById('value-mal').textContent = formatRupiah(zakat);
+                document.getElementById('result-mal').classList.add('show');
+            } else {
+                alert('Harta Anda belum mencapai nisab (setara 85 gram emas)');
+                document.getElementById('result-mal').classList.remove('show');
+            }
+        }
+
+        function calculateZakatFitrah() {
+            const jiwa = parseInt(document.getElementById('input-fitrah-jiwa').value) || 1;
+            const hargaBeras = parseFloat(document.getElementById('input-fitrah-harga').value) || 0;
+            const zakat = jiwa * 3.5 * hargaBeras;
+            
+            document.getElementById('value-fitrah').textContent = formatRupiah(zakat);
+            document.getElementById('result-fitrah').classList.add('show');
+        }
+
+        function calculateZakatEmas() {
+            const jumlahEmas = parseFloat(document.getElementById('input-emas-jumlah').value) || 0;
+            const hargaEmas = parseFloat(document.getElementById('input-emas-harga').value) || 0;
+            const nisab = 85;
+            
+            if (jumlahEmas >= nisab) {
+                const totalNilai = jumlahEmas * hargaEmas;
+                const zakat = totalNilai * 0.025;
+                document.getElementById('value-emas').textContent = formatRupiah(zakat);
+                document.getElementById('result-emas').classList.add('show');
+            } else {
+                alert('Emas Anda belum mencapai nisab (85 gram)');
+                document.getElementById('result-emas').classList.remove('show');
+            }
+        }
+
+        function calculateZakatPerak() {
+            const jumlahPerak = parseFloat(document.getElementById('input-perak-jumlah').value) || 0;
+            const hargaPerak = parseFloat(document.getElementById('input-perak-harga').value) || 0;
+            const nisab = 595;
+            
+            if (jumlahPerak >= nisab) {
+                const totalNilai = jumlahPerak * hargaPerak;
+                const zakat = totalNilai * 0.025;
+                document.getElementById('value-perak').textContent = formatRupiah(zakat);
+                document.getElementById('result-perak').classList.add('show');
+            } else {
+                alert('Perak Anda belum mencapai nisab (595 gram)');
+                document.getElementById('result-perak').classList.remove('show');
+            }
+        }
+
+        function calculateZakatPenghasilan() {
+            const penghasilan = parseFloat(document.getElementById('input-penghasilan').value) || 0;
+            const hargaBeras = parseFloat(document.getElementById('input-penghasilan-beras').value) || 0;
+            const nisab = 520 * hargaBeras;
+            
+            if (penghasilan >= nisab) {
+                const zakat = penghasilan * 0.025;
+                document.getElementById('value-penghasilan').textContent = formatRupiah(zakat);
+                document.getElementById('result-penghasilan').classList.add('show');
+            } else {
+                alert('Penghasilan Anda belum mencapai nisab (setara 520 kg beras)');
+                document.getElementById('result-penghasilan').classList.remove('show');
+            }
+        }
+
+        // ==================== EVENT LISTENERS ====================
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+                closeZakatModal();
+            }
+        });
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ KolaborAksi loaded successfully!');
+            console.log('📊 Banner slider: Using external banners.html');
+            console.log('🎨 Total banners: 3 (Berbagi Kebaikan, Zakat, Bersama Kita Kuat)');
+            console.log('⏱️ Auto-play interval: 3 seconds');
+            loadPageData();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(() => {
+                loadPageData();
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

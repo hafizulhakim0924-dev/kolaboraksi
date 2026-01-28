@@ -1,0 +1,108 @@
+2025-11-25 15:08:15
+Signature: b4feb81cc3c5691fc6c18b6276bcaf57a5ef0e733730aebe2706504cc610caa4
+Data: {"reference":"T4710428656727K3XAQ","merchant_ref":"DN17640561902554","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":100000,"fee_merchant":1450,"fee_customer":0,"total_fee":1450,"amount_received":98550,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-11-26 14:26:17
+Signature: a5b4a7b094bfc9f8e02beb73f82cac1eb0ebe7247a655603f12f9fe362787ef8
+Data: {"reference":"T4710428656558A9U3Q","merchant_ref":"DN17640555634663","payment_method":"Mandiri Virtual Account","payment_method_code":"MANDIRIVA","total_amount":20000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":15750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-11-26 14:30:04
+Signature: 1ed24b7eab4911d4a607449f7b2502a09b0e3a28b9b86d0e8e1ad843a2612d88
+Data: {"reference":"T4710428656624RAL1T","merchant_ref":"DN17640558386436","payment_method":"Other Bank Virtual Account","payment_method_code":"OTHERBANKVA","total_amount":20000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":15750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-11-26 14:34:08
+Signature: 85f6ab419d57d0898170cad6db90fc32dec6b6575b3122b19607a6b83f30fcb6
+Data: {"reference":"T4710428656680XVHPR","merchant_ref":"DN17640560405498","payment_method":"BRI Virtual Account","payment_method_code":"BRIVA","total_amount":20000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":15750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-02 12:26:17
+Signature: 37caece13af794aabc09fafb84cad63133c53da07c12cd14508344b093d86ef1
+Data: {"reference":"T4710428815220CAA9O","merchant_ref":"DN17646513062219","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":20000,"fee_merchant":890,"fee_customer":0,"total_fee":890,"amount_received":19110,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-15 05:53:17
+Signature: 56cfab0b971bd8f11d523de685df695749a57f6c58407d310fafae8c84880d9a
+Data: {"reference":"T4710429189319OODEG","merchant_ref":"DN17657527616384","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"PAID","paid_at":1765752798,"note":null}
+
+2025-12-15 06:59:55
+Signature: 46e3589172571a751bb808913ce6a38b602c02a765525a18cc55ddf1969f0e7e
+Data: {"reference":"T4710429190237PZJ4E","merchant_ref":"DN17657567621722","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"PAID","paid_at":1765756796,"note":null}
+
+2025-12-29 11:20:19
+Signature: f0eeb2ecca199d78f928dc594d2510cc81763c53fecb80dea8a34ed9d1ecf12e
+Data: {"reference":"T4710429500481JOM1B","merchant_ref":"DN17669818207036","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"PAID","paid_at":1766982019,"note":null}
+
+2025-12-29 11:29:51
+Signature: 387170444d5cc77dfdd8084c0a20caa4164006cb4788108e1b230fa8de495175
+Data: {"reference":"T4710429500663ST3DK","merchant_ref":"DN17669825649167","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"PAID","paid_at":1766982592,"note":null}
+
+2025-12-29 11:44:08
+Signature: adeefe5b68a2c8b48840e460ff6e2dc8daf63cae2fa8550d87cf4ffdf4c4977d
+Data: {"reference":"T4710429499942YEJGM","merchant_ref":"DN17669798235958","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:46:09
+Signature: eac4957420d50bad6999d708c64a572d510c484b2f359be1da03a4932ae3bb5f
+Data: {"reference":"T4710429499964JVY7Q","merchant_ref":"DN17669799536800","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:46:09
+Signature: d1a2afdad969c5532529081a487b33991e4122762a723dfb6d1681f36c74a891
+Data: {"reference":"T4710429499965JLQPJ","merchant_ref":"DN17669799574376","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:04
+Signature: 707b05d454f1a451f2a9ef67d87cccec11f776a73234282838d2fddd4cd7e680
+Data: {"reference":"T4710429499969M3XFE","merchant_ref":"DN17669799819183","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:06
+Signature: d03dffde833d93b4ee758cc06bbd1c3398ebd1fb431c281ea498831a6738b457
+Data: {"reference":"T4710429499977WRUR5","merchant_ref":"DN17669800135074","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:11
+Signature: 56d11525fd24f20a00d1e6d81d50354201fc8fa49d74314fdb7b2b952e89546d
+Data: {"reference":"T4710429499985R9FSE","merchant_ref":"DN17669800472133","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:11
+Signature: 8bb9c83fcfcd7e5708c5402068062484f31f25171c1cafadc7bf5ea76a31e232
+Data: {"reference":"T47104294999938KGLU","merchant_ref":"DN17669800602190","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:11
+Signature: 9d19918b6e186d28d3f89179e249f8793b6b4ffce2c1093f064d219398abf56d
+Data: {"reference":"T4710429499994HHEQJ","merchant_ref":"DN17669800591679","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:48:12
+Signature: cb744f9559bd8e419ea3605f0c6cfadfa8b2aaa8a6e3a7f26e0e66c6a68f6038
+Data: {"reference":"T4710429499995EPAKW","merchant_ref":"DN17669800626030","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 11:56:10
+Signature: afda6288515046dd0797961e97c1fde867250d31a224ec4edca4784a3b348f13
+Data: {"reference":"T4710429500135BFNH6","merchant_ref":"DN17669805426271","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 12:02:04
+Signature: 90442d4b6d539d0a09a7620b40c8eafc7216a12421d52f78b35f27ec9751799d
+Data: {"reference":"T47104295002339VZ88","merchant_ref":"DN17669808642454","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 20:48:47
+Signature: 2f6e5bb162b27ab804eea9f0838aa25ecb72431693b5d4d63993931a1bfed088
+Data: {"reference":"T4710429509272IX0KK","merchant_ref":"DN17670124282022","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-29 20:48:47
+Signature: 141a4cf8ed0943c25258215f791f84159b7567222bc2ce39c1f6f4dde99b184e
+Data: {"reference":"T47104295092753PC6V","merchant_ref":"DN17670124395492","payment_method":"QRIS","payment_method_code":"QRIS2","total_amount":10000,"fee_merchant":820,"fee_customer":0,"total_fee":820,"amount_received":9180,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-30 10:46:06
+Signature: 531be7bfae74df4cc6bcc0dcd41c5badce91dab38e4693291f9363ad24b15058
+Data: {"reference":"T4710429499988BBMQS","merchant_ref":"DN17669800537016","payment_method":"Other Bank Virtual Account","payment_method_code":"OTHERBANKVA","total_amount":10000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":5750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-30 10:48:05
+Signature: d7b6556ee5c4c7fb42f2f9f74e034c678b28d3b34857c21ff0e0df4063e63d6c
+Data: {"reference":"T4710429499990CKQW3","merchant_ref":"DN17669800566134","payment_method":"Mandiri Virtual Account","payment_method_code":"MANDIRIVA","total_amount":10000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":5750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-30 11:04:04
+Signature: 15ff99ade4393b193bad678279ec2a30a5aae806886eac65f4abfea70e8b462e
+Data: {"reference":"T4710429500258KU7PI","merchant_ref":"DN17669809499816","payment_method":"Permata Virtual Account","payment_method_code":"PERMATAVA","total_amount":10000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":5750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-30 11:04:05
+Signature: df48546f4d9943688f67f9af58f2b78c24773c7bbecbbd4c78d45acb8c2db66f
+Data: {"reference":"T4710429500269WNTUG","merchant_ref":"DN17669809851699","payment_method":"Permata Virtual Account","payment_method_code":"PERMATAVA","total_amount":10000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":5750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
+2025-12-30 11:16:13
+Signature: 00593ab9ef85e752ddb05d74096565e3a85aadf66f10bb00db6528bb4fdff3f0
+Data: {"reference":"T4710429500464MQAXR","merchant_ref":"DN17669817407137","payment_method":"Permata Virtual Account","payment_method_code":"PERMATAVA","total_amount":10000,"fee_merchant":4250,"fee_customer":0,"total_fee":4250,"amount_received":5750,"is_closed_payment":1,"status":"EXPIRED","paid_at":null,"note":"Transaction expired"}
+
