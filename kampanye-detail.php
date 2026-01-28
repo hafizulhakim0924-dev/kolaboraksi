@@ -105,46 +105,46 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             exit;
         }
 
-    $merchant_ref = 'DN' . time() . rand(1000, 9999);
-    
-    // Calculate signature correctly
-    $signature_string = TRIPAY_MERCHANT_CODE . $merchant_ref . $amount;
-    $signature = hash_hmac('sha256', $signature_string, TRIPAY_PRIVATE_KEY);
-    
-    $data = [
-        'method' => $_POST['payment_method'],
-        'merchant_ref' => $merchant_ref,
-        'amount' => $amount,
-        'customer_name' => trim($_POST['donor_name']),
-        'customer_email' => trim($_POST['donor_email']),
-        'customer_phone' => $phone,
-        'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
-        'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
-        'callback_url' => CALLBACK_URL,
-        'expired_time' => (int)(time() + 86400),
-        'signature' => $signature
-    ];
+        $merchant_ref = 'DN' . time() . rand(1000, 9999);
+        
+        // Calculate signature correctly
+        $signature_string = TRIPAY_MERCHANT_CODE . $merchant_ref . $amount;
+        $signature = hash_hmac('sha256', $signature_string, TRIPAY_PRIVATE_KEY);
+        
+        $data = [
+            'method' => $_POST['payment_method'],
+            'merchant_ref' => $merchant_ref,
+            'amount' => $amount,
+            'customer_name' => trim($_POST['donor_name']),
+            'customer_email' => trim($_POST['donor_email']),
+            'customer_phone' => $phone,
+            'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
+            'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
+            'callback_url' => CALLBACK_URL,
+            'expired_time' => (int)(time() + 86400),
+            'signature' => $signature
+        ];
 
-    $curl = curl_init();
-    curl_setopt_array($curl, [
-        CURLOPT_FRESH_CONNECT => true,
-        CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HEADER => false,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($data),
-        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2
-    ]);
-    
-    $curl_response = curl_exec($curl);
-    $curl_error = curl_error($curl);
-    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_FRESH_CONNECT => true,
+            CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => false,
+            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
+        ]);
+        
+        $curl_response = curl_exec($curl);
+        $curl_error = curl_error($curl);
+        $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
 
         // Handle curl errors
         if ($curl_response === false || !empty($curl_error)) {
@@ -227,10 +227,16 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             }
             
             $qr_url = $tx['qr_url'] ?? '';
-            $is_anonymous = isset($_POST['is_anonymous']) ? 1 : 0;
-            $message = mysqli_real_escape_string($conn, $_POST['message'] ?? '');
+            $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
+            $message_raw = isset($_POST['message']) ? $_POST['message'] : '';
+            $message = !empty($message_raw) ? mysqli_real_escape_string($conn, $message_raw) : '';
             
+            // Prepare SQL statement
             $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, ?, FROM_UNIXTIME(?))");
+            
+            if (!$stmt) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
             
             $total_fee = isset($tx['total_fee']) ? intval($tx['total_fee']) : 0;
             $total_amount = isset($tx['amount']) ? intval($tx['amount']) : $amount;
@@ -323,27 +329,59 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             ]);
         }
     
-    } catch (Exception $e) {
-        // Catch any unexpected errors
-        error_log("Unexpected Error in process_donation: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
+    } catch (mysqli_sql_exception $e) {
+        // Catch database errors
+        error_log("Database Error in process_donation: " . $e->getMessage() . " | Code: " . $e->getCode());
         if (isset($conn)) {
             $conn->close();
         }
+        $error_msg = 'Terjadi kesalahan database. ';
+        if (strpos($e->getMessage(), 'donations') !== false) {
+            $error_msg .= 'Pastikan table donations sudah dibuat. ';
+        }
+        $error_msg .= 'Silakan coba lagi atau hubungi admin.';
         echo json_encode([
             'success' => false,
-            'message' => 'Terjadi kesalahan sistem. Silakan coba lagi atau hubungi admin.',
-            'error' => $e->getMessage()
+            'message' => $error_msg,
+            'error' => $e->getMessage(),
+            'error_type' => 'database'
+        ]);
+    } catch (Exception $e) {
+        // Catch any unexpected errors
+        error_log("Unexpected Error in process_donation: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine() . " | Trace: " . $e->getTraceAsString());
+        if (isset($conn)) {
+            $conn->close();
+        }
+        // Show more detailed error for debugging (you can hide this in production)
+        $error_detail = $e->getMessage();
+        if (strpos($error_detail, 'Call to undefined') !== false) {
+            $error_detail = 'Fungsi tidak ditemukan: ' . $error_detail;
+        } elseif (strpos($error_detail, 'Undefined variable') !== false) {
+            $error_detail = 'Variabel tidak terdefinisi: ' . $error_detail;
+        } elseif (strpos($error_detail, 'mysqli') !== false) {
+            $error_detail = 'Database error: ' . $error_detail;
+        }
+        echo json_encode([
+            'success' => false,
+            'message' => 'Terjadi kesalahan sistem: ' . $error_detail,
+            'error' => $e->getMessage(),
+            'error_type' => 'exception',
+            'file' => basename($e->getFile()),
+            'line' => $e->getLine()
         ]);
     } catch (Error $e) {
         // Catch fatal errors
-        error_log("Fatal Error in process_donation: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
+        error_log("Fatal Error in process_donation: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine() . " | Trace: " . $e->getTraceAsString());
         if (isset($conn)) {
             $conn->close();
         }
         echo json_encode([
             'success' => false,
-            'message' => 'Terjadi kesalahan sistem. Silakan coba lagi atau hubungi admin.',
-            'error' => $e->getMessage()
+            'message' => 'Terjadi kesalahan fatal: ' . $e->getMessage(),
+            'error' => $e->getMessage(),
+            'error_type' => 'fatal',
+            'file' => basename($e->getFile()),
+            'line' => $e->getLine()
         ]);
     }
     
@@ -885,6 +923,15 @@ showPaymentModal(data.data);
 let errorMsg='Gagal membuat transaksi.';
 if(data&&data.message){
 errorMsg=data.message;
+if(data.error){
+errorMsg+='\n\nDetail: '+data.error;
+}
+if(data.error_type){
+errorMsg+='\n\nTipe Error: '+data.error_type;
+}
+if(data.db_error){
+errorMsg+='\n\nDatabase Error: '+data.db_error;
+}
 }else if(data&&data.debug&&data.debug.errors){
 errorMsg='Error validasi:\n'+JSON.stringify(data.debug.errors);
 }else{
