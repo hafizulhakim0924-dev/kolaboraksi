@@ -232,7 +232,9 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $message = !empty($message_raw) ? mysqli_real_escape_string($conn, $message_raw) : '';
             
             // Prepare SQL statement
-            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, ?, FROM_UNIXTIME(?))");
+            // Kolom: campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at
+            // Total: 17 kolom, tapi status hardcoded 'UNPAID', jadi 16 placeholder
+            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, FROM_UNIXTIME(?))");
             
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $conn->error);
@@ -244,24 +246,25 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $payment_name = $tx['payment_name'] ?? $_POST['payment_method'];
             $expired_time = isset($tx['expired_time']) ? intval($tx['expired_time']) : (time() + 86400);
             
+            // Bind 16 parameters: i, s, s, s, i, i, i, s, s, s, s, s, s, s, i, s, i
             $stmt->bind_param(
                 "isssiiissssssisi",
-                $_POST['campaign_id'],     // i
-                $_POST['donor_name'],      // s
-                $_POST['donor_email'],     // s
-                $phone,                    // s
-                $amount,                   // i
-                $total_fee,                // i
-                $total_amount,             // i
-                $_POST['payment_method'],  // s
-                $payment_name,            // s
-                $tx['reference'],         // s
-                $merchant_ref,             // s
-                $checkout_url,             // s
-                $qr_url,                   // s
-                $is_anonymous,             // i
-                $message,                  // s
-                $expired_time              // i
+                $_POST['campaign_id'],     // 1. i - campaign_id
+                $_POST['donor_name'],      // 2. s - donor_name
+                $_POST['donor_email'],     // 3. s - donor_email
+                $phone,                    // 4. s - donor_phone
+                $amount,                   // 5. i - amount
+                $total_fee,                // 6. i - fee_total
+                $total_amount,             // 7. i - total_amount
+                $_POST['payment_method'],  // 8. s - payment_method
+                $payment_name,            // 9. s - payment_channel
+                $tx['reference'],         // 10. s - tripay_reference
+                $merchant_ref,             // 11. s - tripay_merchant_ref
+                $checkout_url,             // 12. s - payment_url
+                $qr_url,                   // 13. s - qr_url
+                $is_anonymous,             // 14. i - is_anonymous
+                $message,                  // 15. s - message
+                $expired_time              // 16. i - expired_at (untuk FROM_UNIXTIME)
             );
 
             if ($stmt->execute()) {
