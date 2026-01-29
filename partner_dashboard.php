@@ -278,7 +278,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* ===== INSERT DATABASE ===== */
-    // Status baru: 'pending' untuk menunggu persetujuan admin
+    // Status: gunakan 'approved' agar kampanye langsung muncul di halaman utama
+    // (index.php menampilkan kampanye dengan status 'approved' atau NULL/kosong)
     // Escape first_image_path if not empty
     $image_value = !empty($first_image_path) ? "'" . mysqli_real_escape_string($conn, $first_image_path) . "'" : "NULL";
     
@@ -305,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 '$link',
                 '$type',
                 0,
-                'pending'
+                'approved'
             )";
 
     if (mysqli_query($conn, $sql)) {
