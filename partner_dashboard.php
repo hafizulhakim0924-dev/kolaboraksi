@@ -75,18 +75,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         mysqli_query($conn, "ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
     }
 
-    // Hitung urutan banner berikutnya
-    $order = 1;
-    $resOrder = mysqli_query($conn, "SELECT MAX(`order`) AS max_order FROM banners");
-    if ($resOrder && $rowOrder = mysqli_fetch_assoc($resOrder)) {
-        $order = (int)$rowOrder['max_order'] + 1;
+    // Hapus banner lama sebelum menyimpan yang baru (hanya 1 banner aktif)
+    // Ambil path gambar banner lama untuk dihapus dari server
+    $old_banners = mysqli_query($conn, "SELECT id, image FROM banners");
+    $old_images = [];
+    if ($old_banners) {
+        while ($old_row = mysqli_fetch_assoc($old_banners)) {
+            if (!empty($old_row['image']) && file_exists($old_row['image'])) {
+                $old_images[] = $old_row['image'];
+            }
+        }
+    }
+    
+    // Hapus semua banner lama dari database
+    mysqli_query($conn, "DELETE FROM banners");
+    
+    // Hapus file gambar banner lama dari server (kecuali jika sama dengan yang baru)
+    foreach ($old_images as $old_img) {
+        if ($old_img != $banner_file && file_exists($old_img)) {
+            @unlink($old_img);
+        }
     }
 
+    // Simpan banner baru dengan order = 1
+    $order = 1;
     $stmtBanner = $conn->prepare("INSERT INTO banners (title, subtitle, image, link, `order`) VALUES (?, ?, ?, ?, ?)");
     if ($stmtBanner) {
         $stmtBanner->bind_param("ssssi", $title, $subtitle, $banner_file, $link, $order);
         if ($stmtBanner->execute()) {
-            $_SESSION['success'] = "Banner beranda berhasil disimpan.";
+            $_SESSION['success'] = "Banner beranda berhasil disimpan dan menggantikan banner lama.";
         } else {
             $_SESSION['error'] = "Gagal menyimpan banner: " . $stmtBanner->error;
         }
@@ -457,7 +474,7 @@ try {
             mysqli_query($conn, "ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
         }
         
-        $banner_res = mysqli_query($conn, "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners ORDER BY `order` ASC, id ASC LIMIT 1");
+        $banner_res = mysqli_query($conn, "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners ORDER BY created_at DESC, id DESC LIMIT 1");
         if ($banner_res && mysqli_num_rows($banner_res) > 0) {
             $current_banner = mysqli_fetch_assoc($banner_res);
         }

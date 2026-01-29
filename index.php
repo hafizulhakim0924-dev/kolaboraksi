@@ -117,8 +117,8 @@ $sql = "SELECT id, title, emoji, image, organizer, target_terkumpul, donasi_terk
                 $conn->query("ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
             }
             
-            // Tabel ada, ambil banner aktif (urutkan berdasarkan order, ambil yang pertama)
-            $bannerQuery = "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners WHERE (image IS NOT NULL AND image != '') ORDER BY `order` ASC, id ASC LIMIT 1";
+            // Tabel ada, ambil banner aktif (urutkan berdasarkan created_at terbaru atau id terbaru)
+            $bannerQuery = "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners WHERE (image IS NOT NULL AND image != '') ORDER BY created_at DESC, id DESC LIMIT 1";
             $bannerRes = $conn->query($bannerQuery);
             if ($bannerRes && $bannerRes->num_rows > 0) {
                 while ($row = $bannerRes->fetch_assoc()) {
