@@ -69,6 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     mysqli_query($conn, $createBannerTable);
 
+    // Pastikan kolom 'link' ada di tabel banners (untuk tabel yang sudah ada)
+    $checkLinkColumn = mysqli_query($conn, "SHOW COLUMNS FROM banners LIKE 'link'");
+    if (!$checkLinkColumn || mysqli_num_rows($checkLinkColumn) == 0) {
+        mysqli_query($conn, "ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
+    }
+
     // Hitung urutan banner berikutnya
     $order = 1;
     $resOrder = mysqli_query($conn, "SELECT MAX(`order`) AS max_order FROM banners");
@@ -442,12 +448,22 @@ while ($row = mysqli_fetch_assoc($campaigns_query)) {
 
 // Get current home banner (if banners table exists)
 $current_banner = null;
-$check_banner_table = mysqli_query($conn, "SHOW TABLES LIKE 'banners'");
-if ($check_banner_table && mysqli_num_rows($check_banner_table) > 0) {
-    $banner_res = mysqli_query($conn, "SELECT * FROM banners ORDER BY `order` ASC LIMIT 1");
-    if ($banner_res && mysqli_num_rows($banner_res) > 0) {
-        $current_banner = mysqli_fetch_assoc($banner_res);
+try {
+    $check_banner_table = mysqli_query($conn, "SHOW TABLES LIKE 'banners'");
+    if ($check_banner_table && mysqli_num_rows($check_banner_table) > 0) {
+        // Pastikan kolom 'link' ada
+        $checkLinkColumn = mysqli_query($conn, "SHOW COLUMNS FROM banners LIKE 'link'");
+        if (!$checkLinkColumn || mysqli_num_rows($checkLinkColumn) == 0) {
+            mysqli_query($conn, "ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
+        }
+        
+        $banner_res = mysqli_query($conn, "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners ORDER BY `order` ASC, id ASC LIMIT 1");
+        if ($banner_res && mysqli_num_rows($banner_res) > 0) {
+            $current_banner = mysqli_fetch_assoc($banner_res);
+        }
     }
+} catch (Exception $e) {
+    // Jika error, biarkan null
 }
 
 function rupiah($number) {
