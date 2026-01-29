@@ -105,6 +105,17 @@ $sql = "SELECT id, title, emoji, image, organizer, target_terkumpul, donasi_terk
         )
     );
 
+    // Banners untuk halaman utama (jika tabel banners tersedia)
+    $data['banners'] = [];
+    $checkBannerTable = $conn->query("SHOW TABLES LIKE 'banners'");
+    if ($checkBannerTable && $checkBannerTable->num_rows > 0) {
+        if ($bannerRes = $conn->query("SELECT id, title, subtitle, image, link, `order` FROM banners ORDER BY `order` ASC")) {
+            while ($row = $bannerRes->fetch_assoc()) {
+                $data['banners'][] = $row;
+            }
+        }
+    }
+
     // Categories removed - replaced with menu items
 
     return $data;
@@ -1129,15 +1140,31 @@ $conn->close();
                 
                 <!-- Banner Section -->
                 <?php 
-                $latest_banner = !empty($data['latest_campaigns']) ? $data['latest_campaigns'][0] : null;
-                if ($latest_banner && !empty($latest_banner['image'])): 
+                // Prioritaskan banner dari tabel banners, jika tidak ada gunakan campaign terbaru
+                $banner = !empty($data['banners']) ? $data['banners'][0] : null;
+                if (!$banner) {
+                    $banner = !empty($data['latest_campaigns']) ? $data['latest_campaigns'][0] : null;
+                }
+
+                if ($banner):
+                    $bannerImage = $banner['image'] ?? ($banner['image_path'] ?? '');
+                    $bannerTitle = $banner['title'] ?? ($banner['name'] ?? 'KolaborAksi');
+                    $bannerSubtitle = $banner['subtitle'] ?? '';
+                    $bannerLink = $banner['link'] ?? (isset($banner['id']) ? 'kampanye-detail.php?id=' . $banner['id'] : '#');
+                    $bannerEmoji = $banner['emoji'] ?? '💝';
                 ?>
                 <div class="banner-section">
-                    <a href="kampanye-detail.php?id=<?= $latest_banner['id'] ?>" class="banner-image-link">
-                        <img src="<?= htmlspecialchars($latest_banner['image']) ?>" alt="<?= htmlspecialchars($latest_banner['title']) ?>" class="banner-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="banner-image-placeholder" style="display: none;">
-                            <?= htmlspecialchars($latest_banner['emoji'] ?? '💝') ?>
-                        </div>
+                    <a href="<?= htmlspecialchars($bannerLink) ?>" class="banner-image-link" target="_self">
+                        <?php if (!empty($bannerImage)): ?>
+                            <img src="<?= htmlspecialchars($bannerImage) ?>" alt="<?= htmlspecialchars($bannerTitle) ?>" class="banner-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="banner-image-placeholder" style="display: none;">
+                                <?= htmlspecialchars($bannerEmoji) ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="banner-image-placeholder">
+                                <?= htmlspecialchars($bannerEmoji) ?>
+                            </div>
+                        <?php endif; ?>
                     </a>
                 </div>
                 <?php endif; ?>

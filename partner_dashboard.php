@@ -16,8 +16,86 @@ $partner_nama = $_SESSION['partner_nama'];
 /* =========================
    HANDLE SUBMIT FORM
 ========================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'banner') {
+    // ==== FORM: SIMPAN BANNER BERANDA ====
+    $title    = mysqli_real_escape_string($conn, $_POST['banner_title'] ?? '');
+    $subtitle = mysqli_real_escape_string($conn, $_POST['banner_subtitle'] ?? '');
+    $link     = mysqli_real_escape_string($conn, $_POST['banner_link'] ?? '#');
+
+    if (empty($title)) {
+        $title = 'KolaborAksi';
+    }
+
+    if (!isset($_FILES['banner_image']) || $_FILES['banner_image']['error'] !== UPLOAD_ERR_OK) {
+        $_SESSION['error'] = "Silakan pilih gambar banner.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    // Validasi dan upload file banner
+    $allowed_banner_ext = ['jpg','jpeg','png','gif','webp'];
+    $banner_name = $_FILES['banner_image']['name'];
+    $banner_tmp  = $_FILES['banner_image']['tmp_name'];
+    $banner_ext  = strtolower(pathinfo($banner_name, PATHINFO_EXTENSION));
+
+    if (!in_array($banner_ext, $allowed_banner_ext)) {
+        $_SESSION['error'] = "Format banner tidak diizinkan. Gunakan JPG, JPEG, PNG, GIF, atau WEBP.";
+        header("Location: partner_dashboard.php");
+        return;
+    }
+
+    if (!is_dir('uploads/banners')) {
+        mkdir('uploads/banners', 0755, true);
+    }
+
+    $banner_file = 'uploads/banners/' . time() . '_' . uniqid() . '.' . $banner_ext;
+    if (!move_uploaded_file($banner_tmp, $banner_file)) {
+        $_SESSION['error'] = "Gagal meng-upload file banner.";
+        header("Location: partner_dashboard.php");
+        return;
+    }
+
+    // Pastikan tabel banners ada
+    $createBannerTable = "CREATE TABLE IF NOT EXISTS `banners` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `title` varchar(255) NOT NULL,
+        `subtitle` varchar(255) DEFAULT NULL,
+        `image` varchar(255) NOT NULL,
+        `link` varchar(255) DEFAULT NULL,
+        `order` int(11) NOT NULL DEFAULT 0,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `idx_order` (`order`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    mysqli_query($conn, $createBannerTable);
+
+    // Hitung urutan banner berikutnya
+    $order = 1;
+    $resOrder = mysqli_query($conn, "SELECT MAX(`order`) AS max_order FROM banners");
+    if ($resOrder && $rowOrder = mysqli_fetch_assoc($resOrder)) {
+        $order = (int)$rowOrder['max_order'] + 1;
+    }
+
+    $stmtBanner = $conn->prepare("INSERT INTO banners (title, subtitle, image, link, `order`) VALUES (?, ?, ?, ?, ?)");
+    if ($stmtBanner) {
+        $stmtBanner->bind_param("ssssi", $title, $subtitle, $banner_file, $link, $order);
+        if ($stmtBanner->execute()) {
+            $_SESSION['success'] = "Banner beranda berhasil disimpan.";
+        } else {
+            $_SESSION['error'] = "Gagal menyimpan banner: " . $stmtBanner->error;
+        }
+        $stmtBanner->close();
+    } else {
+        $_SESSION['error'] = "Gagal menyiapkan query banner: " . mysqli_error($conn);
+    }
+
+    header("Location: partner_dashboard.php");
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // ==== FORM: BUAT KAMPANYE BARU ====
     $organizer        = mysqli_real_escape_string($conn, $partner_nama);
     $title            = mysqli_real_escape_string($conn, $_POST['title']);
     $emoji            = mysqli_real_escape_string($conn, $_POST['emoji'] ?? 'ðŸ“–');
@@ -362,6 +440,16 @@ while ($row = mysqli_fetch_assoc($campaigns_query)) {
     $campaigns_list[] = $row;
 }
 
+// Get current home banner (if banners table exists)
+$current_banner = null;
+$check_banner_table = mysqli_query($conn, "SHOW TABLES LIKE 'banners'");
+if ($check_banner_table && mysqli_num_rows($check_banner_table) > 0) {
+    $banner_res = mysqli_query($conn, "SELECT * FROM banners ORDER BY `order` ASC LIMIT 1");
+    if ($banner_res && mysqli_num_rows($banner_res) > 0) {
+        $current_banner = mysqli_fetch_assoc($banner_res);
+    }
+}
+
 function rupiah($number) {
     return "Rp " . number_format($number, 0, ',', '.');
 }
@@ -678,6 +766,50 @@ button[type="submit"]:hover {
     <?php if(isset($_SESSION['error'])): ?>
         <div class="alert error"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
     <?php endif; ?>
+
+    <!-- Banner Beranda -->
+    <div class="card" style="margin-top: 10px; margin-bottom: 20px;">
+        <h2>Banner Beranda</h2>
+        <p style="font-size: 13px; color: #555; margin-bottom: 10px;">
+            Banner ini akan tampil di bagian paling atas halaman utama, seperti contoh Rumah Zakat. 
+            Gunakan gambar ukuran landscape (misal 1200x500) agar tampilan lebih rapi.
+        </p>
+
+        <?php if ($current_banner && !empty($current_banner['image'])): ?>
+            <div style="margin-bottom: 12px;">
+                <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 100%; max-height: 220px;">
+                    <img src="<?= htmlspecialchars($current_banner['image']) ?>" alt="<?= htmlspecialchars($current_banner['title']) ?>" style="width:100%; height:220px; object-fit:cover;">
+                </div>
+                <div style="margin-top: 8px; font-size: 13px;">
+                    <strong><?= htmlspecialchars($current_banner['title']) ?></strong><br>
+                    <span style="color:#666;"><?= htmlspecialchars($current_banner['subtitle'] ?? '') ?></span>
+                </div>
+            </div>
+        <?php else: ?>
+            <p style="font-size: 13px; color:#888; margin-bottom:10px;">Belum ada banner. Silakan upload banner pertama Anda.</p>
+        <?php endif; ?>
+
+        <form method="POST" enctype="multipart/form-data" style="margin-top: 10px;">
+            <input type="hidden" name="form_type" value="banner">
+            
+            <label>Judul Banner</label>
+            <input type="text" name="banner_title" placeholder="Contoh: #BikinBahagia - Ayo Berdonasi Sekarang" required>
+
+            <label>Subjudul (opsional)</label>
+            <input type="text" name="banner_subtitle" placeholder="Teks pendek tambahan di bawah judul">
+
+            <label>Link ketika banner di-klik (opsional)</label>
+            <input type="text" name="banner_link" placeholder="Contoh: https://kolaboraksi.app.rangkiangpedulinegeri.org">
+
+            <label>Gambar Banner</label>
+            <input type="file" name="banner_image" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" required>
+            <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">
+                Rekomendasi ukuran: 1200x500 atau proporsi 3:2 / 16:9. Format: JPG, PNG, GIF, atau WEBP.
+            </small>
+
+            <button type="submit" style="margin-top:12px;">Simpan Banner</button>
+        </form>
+    </div>
 
     <!-- Statistics -->
     <div class="stats-grid">
