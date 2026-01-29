@@ -278,8 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* ===== INSERT DATABASE ===== */
-    // Status: gunakan 'approved' agar kampanye langsung muncul di halaman utama
-    // (index.php menampilkan kampanye dengan status 'approved' atau NULL/kosong)
+    // Status default di-set 'approved' agar kampanye langsung tampil di halaman utama
     // Escape first_image_path if not empty
     $image_value = !empty($first_image_path) ? "'" . mysqli_real_escape_string($conn, $first_image_path) . "'" : "NULL";
     

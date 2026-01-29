@@ -5,8 +5,8 @@ if (isset($_GET['ajax']) || isset($_POST['ajax'])) {
     ini_set('display_errors', 0);
     ini_set('log_errors', 1);
 } else {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 }
 session_start();
 header('Content-Type: text/html; charset=utf-8');
@@ -19,21 +19,21 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_channels') {
     header('Content-Type: application/json; charset=utf-8');
     
     try {
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_FRESH_CONNECT => true,
-            CURLOPT_URL => TRIPAY_API_URL . '/merchant/payment-channel',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER => false,
-            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY],
-            CURLOPT_FAILONERROR => false,
+    $curl = curl_init();
+    curl_setopt_array($curl, [
+        CURLOPT_FRESH_CONNECT => true,
+        CURLOPT_URL => TRIPAY_API_URL . '/merchant/payment-channel',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER => false,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY],
+        CURLOPT_FAILONERROR => false,
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             CURLOPT_TIMEOUT => 30
-        ]);
+    ]);
         
         $response = curl_exec($curl);
         $curl_error = curl_error($curl);
-        curl_close($curl);
+    curl_close($curl);
         
         if ($response === false || !empty($curl_error)) {
             echo json_encode(['success' => false, 'message' => 'Gagal memuat metode pembayaran', 'error' => $curl_error]);
@@ -54,14 +54,14 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'check_status') {
     header('Content-Type: application/json; charset=utf-8');
     
     try {
-        $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT status FROM donations WHERE tripay_reference = ?");
-        $stmt->bind_param("s", $_GET['reference']);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        $conn->close();
-        echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
+    $conn = getDBConnection();
+    $stmt = $conn->prepare("SELECT status FROM donations WHERE tripay_reference = ?");
+    $stmt->bind_param("s", $_GET['reference']);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    $conn->close();
+    echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
     } catch (Exception $e) {
         error_log("Error in check_status: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
@@ -79,72 +79,72 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
     ob_start();
     
     try {
-        $amount = intval($_POST['amount']);
-        if ($amount < 10000) {
-            echo json_encode(['success' => false, 'message' => 'Minimal donasi Rp 10.000']);
+    $amount = intval($_POST['amount']);
+    if ($amount < 10000) {
+        echo json_encode(['success' => false, 'message' => 'Minimal donasi Rp 10.000']);
             $output = ob_get_clean();
             echo $output;
-            exit;
-        }
+        exit;
+    }
 
-        $phone = $_POST['donor_phone'];
-        if (substr($phone, 0, 1) === '0') $phone = '62' . substr($phone, 1);
-        elseif (substr($phone, 0, 2) !== '62') $phone = '62' . $phone;
+    $phone = $_POST['donor_phone'];
+    if (substr($phone, 0, 1) === '0') $phone = '62' . substr($phone, 1);
+    elseif (substr($phone, 0, 2) !== '62') $phone = '62' . $phone;
 
-        $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT * FROM campaigns WHERE id = ?");
-        $stmt->bind_param("i", $_POST['campaign_id']);
-        $stmt->execute();
-        $campaign = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
+    $conn = getDBConnection();
+    $stmt = $conn->prepare("SELECT * FROM campaigns WHERE id = ?");
+    $stmt->bind_param("i", $_POST['campaign_id']);
+    $stmt->execute();
+    $campaign = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-        if (!$campaign) {
-            echo json_encode(['success' => false, 'message' => 'Kampanye tidak ditemukan']);
+    if (!$campaign) {
+        echo json_encode(['success' => false, 'message' => 'Kampanye tidak ditemukan']);
             $output = ob_get_clean();
             echo $output;
-            exit;
-        }
+        exit;
+    }
 
-        $merchant_ref = 'DN' . time() . rand(1000, 9999);
+    $merchant_ref = 'DN' . time() . rand(1000, 9999);
         
         // Calculate signature correctly
         $signature_string = TRIPAY_MERCHANT_CODE . $merchant_ref . $amount;
         $signature = hash_hmac('sha256', $signature_string, TRIPAY_PRIVATE_KEY);
         
-        $data = [
-            'method' => $_POST['payment_method'],
-            'merchant_ref' => $merchant_ref,
-            'amount' => $amount,
-            'customer_name' => trim($_POST['donor_name']),
-            'customer_email' => trim($_POST['donor_email']),
-            'customer_phone' => $phone,
-            'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
-            'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
+    $data = [
+        'method' => $_POST['payment_method'],
+        'merchant_ref' => $merchant_ref,
+        'amount' => $amount,
+        'customer_name' => trim($_POST['donor_name']),
+        'customer_email' => trim($_POST['donor_email']),
+        'customer_phone' => $phone,
+        'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
+        'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
             'callback_url' => CALLBACK_URL,
             'expired_time' => (int)(time() + 86400),
             'signature' => $signature
-        ];
+    ];
 
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_FRESH_CONNECT => true,
-            CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER => false,
-            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($data),
+    $curl = curl_init();
+    curl_setopt_array($curl, [
+        CURLOPT_FRESH_CONNECT => true,
+        CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER => false,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2
-        ]);
+    ]);
         
         $curl_response = curl_exec($curl);
         $curl_error = curl_error($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+    curl_close($curl);
 
         // Handle curl errors
         if ($curl_response === false || !empty($curl_error)) {
@@ -212,7 +212,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
 
         // Check if transaction creation was successful
         if (isset($response['success']) && $response['success'] === true && isset($response['data'])) {
-            $tx = $response['data'];
+        $tx = $response['data'];
             
             // Validate required transaction data
             if (!isset($tx['reference']) || !isset($tx['amount']) || !isset($tx['payment_name'])) {
@@ -226,7 +226,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
                 exit;
             }
             
-            $qr_url = $tx['qr_url'] ?? '';
+        $qr_url = $tx['qr_url'] ?? '';
             $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
             $message_raw = isset($_POST['message']) ? $_POST['message'] : '';
             $message = !empty($message_raw) ? mysqli_real_escape_string($conn, $message_raw) : '';
@@ -235,7 +235,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             // Kolom: campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at
             // Total: 17 kolom, tapi status hardcoded 'UNPAID', jadi 16 placeholder
             $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, FROM_UNIXTIME(?))");
-            
+        
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $conn->error);
             }
@@ -247,8 +247,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $expired_time = isset($tx['expired_time']) ? intval($tx['expired_time']) : (time() + 86400);
             
             // Bind 16 parameters: i, s, s, s, i, i, i, s, s, s, s, s, s, s, i, s, i
-            $stmt->bind_param(
-                "isssiiissssssisi",
+        $stmt->bind_param(
+ "isssiiissssssisi",
                 $_POST['campaign_id'],     // 1. i - campaign_id
                 $_POST['donor_name'],      // 2. s - donor_name
                 $_POST['donor_email'],     // 3. s - donor_email
@@ -265,23 +265,23 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
                 $is_anonymous,             // 14. i - is_anonymous
                 $message,                  // 15. s - message
                 $expired_time              // 16. i - expired_at (untuk FROM_UNIXTIME)
-            );
+);
 
             if ($stmt->execute()) {
-                $stmt->close();
-                $conn->close();
-                
-                echo json_encode(['success' => true, 'data' => [
-                    'reference' => $tx['reference'],
-                    'payment_name' => $tx['payment_name'],
-                    'pay_code' => $tx['pay_code'] ?? null,
-                    'qr_url' => $tx['qr_url'] ?? null,
-                    'amount' => $tx['amount'],
+        $stmt->close();
+        $conn->close();
+        
+        echo json_encode(['success' => true, 'data' => [
+            'reference' => $tx['reference'],
+            'payment_name' => $tx['payment_name'],
+            'pay_code' => $tx['pay_code'] ?? null,
+            'qr_url' => $tx['qr_url'] ?? null,
+            'amount' => $tx['amount'],
                     'fee' => $total_fee,
                     'expired_time' => $expired_time,
-                    'instructions' => $tx['instructions'] ?? []
-                ]]);
-            } else {
+            'instructions' => $tx['instructions'] ?? []
+        ]]);
+    } else {
                 $stmt->close();
                 $conn->close();
                 echo json_encode([
