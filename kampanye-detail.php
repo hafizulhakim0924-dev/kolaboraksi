@@ -19,24 +19,56 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_channels') {
     header('Content-Type: application/json; charset=utf-8');
     
     try {
-    $curl = curl_init();
-    curl_setopt_array($curl, [
-        CURLOPT_FRESH_CONNECT => true,
-        CURLOPT_URL => TRIPAY_API_URL . '/merchant/payment-channel',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HEADER => false,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY],
-        CURLOPT_FAILONERROR => false,
-            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            CURLOPT_TIMEOUT => 30
-    ]);
+        $max_retries = 2;
+        $response = false;
+        $curl_error = '';
         
-        $response = curl_exec($curl);
-        $curl_error = curl_error($curl);
-    curl_close($curl);
+        for ($retry = 0; $retry < $max_retries; $retry++) {
+            if ($retry > 0) {
+                sleep(2);
+                error_log("Retrying get_channels (attempt " . ($retry + 1) . "/" . $max_retries . ")");
+            }
+            
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_FRESH_CONNECT => ($retry === 0),
+                CURLOPT_URL => TRIPAY_API_URL . '/merchant/payment-channel',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HEADER => false,
+                CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY],
+                CURLOPT_FAILONERROR => false,
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_TIMEOUT => 60,
+                CURLOPT_CONNECTTIMEOUT => 30,
+                CURLOPT_DNS_CACHE_TIMEOUT => 300,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 3,
+                CURLOPT_USERAGENT => 'KolaborAksi/1.0'
+            ]);
+            
+            $response = curl_exec($curl);
+            $curl_error = curl_error($curl);
+            curl_close($curl);
+            
+            if ($response !== false && empty($curl_error)) {
+                break;
+            }
+            
+            // Jika error bukan timeout atau connection, jangan retry
+            if (!empty($curl_error) && 
+                strpos($curl_error, 'timeout') === false && 
+                strpos($curl_error, 'resolve') === false &&
+                strpos($curl_error, 'Connection') === false &&
+                strpos($curl_error, 'Failed to connect') === false) {
+                break;
+            }
+        }
         
         if ($response === false || !empty($curl_error)) {
-            echo json_encode(['success' => false, 'message' => 'Gagal memuat metode pembayaran', 'error' => $curl_error]);
+            error_log("get_channels CURL Error after " . $max_retries . " retries: " . $curl_error);
+            echo json_encode(['success' => false, 'message' => 'Gagal memuat metode pembayaran. Silakan refresh halaman.', 'error' => $curl_error]);
         } else {
             echo $response;
         }
@@ -137,34 +169,70 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             'signature' => $signature
     ];
 
-    $curl = curl_init();
-    curl_setopt_array($curl, [
-        CURLOPT_FRESH_CONNECT => true,
-        CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HEADER => false,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2
-    ]);
+    // Retry logic untuk mengatasi timeout
+    $max_retries = 2;
+    $curl_response = false;
+    $curl_error = '';
+    $http_code = 0;
+    
+    for ($retry = 0; $retry < $max_retries; $retry++) {
+        if ($retry > 0) {
+            // Wait 2 seconds before retry
+            sleep(2);
+            error_log("Retrying Tripay API request (attempt " . ($retry + 1) . "/" . $max_retries . ")");
+        }
         
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_FRESH_CONNECT => ($retry === 0), // Fresh connection on first attempt
+            CURLOPT_URL => TRIPAY_API_URL . '/transaction/create',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => false,
+            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . TRIPAY_API_KEY, 'Content-Type: application/json'],
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_TIMEOUT => 60, // Increased from 30 to 60 seconds
+            CURLOPT_CONNECTTIMEOUT => 30, // Increased from 10 to 30 seconds for DNS resolution
+            CURLOPT_DNS_CACHE_TIMEOUT => 300, // Cache DNS for 5 minutes
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_USERAGENT => 'KolaborAksi/1.0'
+        ]);
+            
         $curl_response = curl_exec($curl);
         $curl_error = curl_error($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
+        curl_close($curl);
+        
+        // Jika berhasil atau bukan timeout/connection error, keluar dari loop
+        if ($curl_response !== false && empty($curl_error) && $http_code === 200) {
+            break;
+        }
+        
+        // Jika error bukan timeout atau connection, jangan retry
+        if (!empty($curl_error) && 
+            strpos($curl_error, 'timeout') === false && 
+            strpos($curl_error, 'resolve') === false &&
+            strpos($curl_error, 'Connection') === false &&
+            strpos($curl_error, 'Failed to connect') === false) {
+            break;
+        }
+    }
 
-        // Handle curl errors
+        // Handle curl errors setelah semua retry
         if ($curl_response === false || !empty($curl_error)) {
             $conn->close();
-            error_log("Tripay CURL Error: " . $curl_error);
+            error_log("Tripay CURL Error after " . $max_retries . " retries: " . $curl_error);
+            $error_message = 'Gagal terhubung ke server pembayaran. Silakan coba lagi atau gunakan metode pembayaran lain.';
+            if (strpos($curl_error, 'timeout') !== false || strpos($curl_error, 'resolve') !== false) {
+                $error_message = 'Koneksi ke server pembayaran timeout. Pastikan koneksi internet Anda stabil dan coba lagi.';
+            }
             echo json_encode([
                 'success' => false, 
-                'message' => 'Gagal terhubung ke server pembayaran. Silakan coba lagi atau gunakan metode pembayaran lain.',
+                'message' => $error_message,
                 'error' => $curl_error
             ]);
             $output = ob_get_clean();
