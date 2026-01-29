@@ -107,13 +107,27 @@ $sql = "SELECT id, title, emoji, image, organizer, target_terkumpul, donasi_terk
 
     // Banners untuk halaman utama (jika tabel banners tersedia)
     $data['banners'] = [];
-    $checkBannerTable = $conn->query("SHOW TABLES LIKE 'banners'");
-    if ($checkBannerTable && $checkBannerTable->num_rows > 0) {
-        if ($bannerRes = $conn->query("SELECT id, title, subtitle, image, link, `order` FROM banners ORDER BY `order` ASC")) {
-            while ($row = $bannerRes->fetch_assoc()) {
-                $data['banners'][] = $row;
+    try {
+        // Cek apakah tabel banners ada dengan cara yang lebih sederhana
+        $tableCheck = $conn->query("SELECT 1 FROM banners LIMIT 1");
+        if ($tableCheck !== false) {
+            // Tabel ada, ambil banner aktif (urutkan berdasarkan order, ambil yang pertama)
+            $bannerQuery = "SELECT id, title, subtitle, image, link, `order` FROM banners WHERE (image IS NOT NULL AND image != '') ORDER BY `order` ASC, id ASC LIMIT 1";
+            $bannerRes = $conn->query($bannerQuery);
+            if ($bannerRes && $bannerRes->num_rows > 0) {
+                while ($row = $bannerRes->fetch_assoc()) {
+                    // Pastikan image tidak kosong
+                    if (!empty($row['image']) && trim($row['image']) != '') {
+                        $data['banners'][] = $row;
+                    }
+                }
             }
         }
+    } catch (Exception $e) {
+        // Jika error, biarkan array kosong dan akan pakai fallback campaign
+        // Tidak perlu log error untuk menghindari spam log
+    } catch (Error $e) {
+        // Handle PHP 7+ Error class
     }
 
     // Categories removed - replaced with menu items
@@ -1141,17 +1155,32 @@ $conn->close();
                 <!-- Banner Section -->
                 <?php 
                 // Prioritaskan banner dari tabel banners, jika tidak ada gunakan campaign terbaru
-                $banner = !empty($data['banners']) ? $data['banners'][0] : null;
-                if (!$banner) {
-                    $banner = !empty($data['latest_campaigns']) ? $data['latest_campaigns'][0] : null;
+                $banner = null;
+                $bannerImage = '';
+                $bannerTitle = 'KolaborAksi';
+                $bannerSubtitle = '';
+                $bannerLink = '#';
+                $bannerEmoji = '💝';
+                
+                // Cek banner dari tabel banners terlebih dahulu
+                if (!empty($data['banners']) && is_array($data['banners']) && count($data['banners']) > 0) {
+                    $banner = $data['banners'][0];
+                    $bannerImage = !empty($banner['image']) ? trim($banner['image']) : '';
+                    $bannerTitle = !empty($banner['title']) ? trim($banner['title']) : 'KolaborAksi';
+                    $bannerSubtitle = !empty($banner['subtitle']) ? trim($banner['subtitle']) : '';
+                    $bannerLink = !empty($banner['link']) ? trim($banner['link']) : '#';
+                } 
+                // Fallback ke campaign terbaru jika tidak ada banner
+                elseif (!empty($data['latest_campaigns']) && is_array($data['latest_campaigns']) && count($data['latest_campaigns']) > 0) {
+                    $banner = $data['latest_campaigns'][0];
+                    $bannerImage = !empty($banner['image']) ? trim($banner['image']) : '';
+                    $bannerTitle = !empty($banner['title']) ? trim($banner['title']) : 'KolaborAksi';
+                    $bannerLink = isset($banner['id']) ? 'kampanye-detail.php?id=' . intval($banner['id']) : '#';
+                    $bannerEmoji = !empty($banner['emoji']) ? trim($banner['emoji']) : '💝';
                 }
-
+                
+                // Tampilkan banner jika ada data
                 if ($banner):
-                    $bannerImage = $banner['image'] ?? ($banner['image_path'] ?? '');
-                    $bannerTitle = $banner['title'] ?? ($banner['name'] ?? 'KolaborAksi');
-                    $bannerSubtitle = $banner['subtitle'] ?? '';
-                    $bannerLink = $banner['link'] ?? (isset($banner['id']) ? 'kampanye-detail.php?id=' . $banner['id'] : '#');
-                    $bannerEmoji = $banner['emoji'] ?? '💝';
                 ?>
                 <div class="banner-section">
                     <a href="<?= htmlspecialchars($bannerLink) ?>" class="banner-image-link" target="_self">
