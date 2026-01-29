@@ -56,12 +56,17 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'check_status') {
     try {
     $conn = getDBConnection();
     $stmt = $conn->prepare("SELECT status FROM donations WHERE tripay_reference = ?");
-    $stmt->bind_param("s", $_GET['reference']);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    if ($stmt) {
+        $stmt->bind_param("s", $_GET['reference']);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
+    } else {
+        error_log("Error preparing check_status query: " . $conn->error);
+        echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
+    }
     $conn->close();
-    echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
     } catch (Exception $e) {
         error_log("Error in check_status: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
@@ -93,6 +98,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
 
     $conn = getDBConnection();
     $stmt = $conn->prepare("SELECT * FROM campaigns WHERE id = ?");
+    if (!$stmt) {
+        error_log("Error preparing campaign query: " . $conn->error);
+        echo json_encode(['success' => false, 'message' => 'Gagal memuat data kampanye']);
+        $output = ob_get_clean();
+        echo $output;
+        exit;
+    }
     $stmt->bind_param("i", $_POST['campaign_id']);
     $stmt->execute();
     $campaign = $stmt->get_result()->fetch_assoc();
@@ -409,28 +421,78 @@ $campaign_id = intval($_GET['id'] ?? 0);
 if (!$campaign_id) { header('Location: index.php'); exit; }
 
 $conn = getDBConnection();
-$campaign = $conn->query("SELECT * FROM campaigns WHERE id = $campaign_id")->fetch_assoc();
-if (!$campaign) { header('Location: index.php'); exit; }
+$campaign_result = $conn->query("SELECT * FROM campaigns WHERE id = $campaign_id");
+if (!$campaign_result) {
+    error_log("Error querying campaign: " . $conn->error);
+    header('Location: index.php');
+    exit;
+}
+$campaign = $campaign_result->fetch_assoc();
+if (!$campaign) { 
+    header('Location: index.php'); 
+    exit; 
+}
+
+// Pastikan tabel campaign_media ada
+$create_media_table = "CREATE TABLE IF NOT EXISTS `campaign_media` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `campaign_id` int(11) NOT NULL,
+    `media_type` enum('image','video') NOT NULL,
+    `media_path` varchar(255) NOT NULL,
+    `media_url` varchar(255) DEFAULT NULL,
+    `display_order` int(11) NOT NULL DEFAULT 0,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `campaign_id` (`campaign_id`),
+    KEY `display_order` (`display_order`),
+    CONSTRAINT `campaign_media_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+$conn->query($create_media_table);
 
 // Get campaign media (images and videos)
+$campaign_media = [];
 $media_stmt = $conn->prepare("SELECT * FROM campaign_media WHERE campaign_id = ? ORDER BY display_order ASC, id ASC");
-$media_stmt->bind_param("i", $campaign_id);
-$media_stmt->execute();
-$campaign_media = $media_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$media_stmt->close();
+if ($media_stmt) {
+    $media_stmt->bind_param("i", $campaign_id);
+    $media_stmt->execute();
+    $media_result = $media_stmt->get_result();
+    if ($media_result) {
+        $campaign_media = $media_result->fetch_all(MYSQLI_ASSOC);
+    }
+    $media_stmt->close();
+} else {
+    error_log("Error preparing campaign_media query: " . $conn->error);
+}
 
+// Get recent donations
+$recent_donations = [];
 $stmt = $conn->prepare("SELECT donor_name, amount, message, is_anonymous, created_at FROM donations WHERE campaign_id = ? AND status = 'PAID' ORDER BY created_at DESC LIMIT 10");
-$stmt->bind_param("i", $campaign_id);
-$stmt->execute();
-$recent_donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+if ($stmt) {
+    $stmt->bind_param("i", $campaign_id);
+    $stmt->execute();
+    $donations_result = $stmt->get_result();
+    if ($donations_result) {
+        $recent_donations = $donations_result->fetch_all(MYSQLI_ASSOC);
+    }
+    $stmt->close();
+} else {
+    error_log("Error preparing donations query: " . $conn->error);
+}
 
 // Get related campaigns from same organizer
+$related_campaigns = [];
 $stmt = $conn->prepare("SELECT id, title, emoji, image, target_terkumpul, donasi_terkumpul, organizer FROM campaigns WHERE organizer = ? AND id != ? ORDER BY created_at DESC LIMIT 3");
-$stmt->bind_param("si", $campaign['organizer'], $campaign_id);
-$stmt->execute();
-$related_campaigns = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+if ($stmt) {
+    $stmt->bind_param("si", $campaign['organizer'], $campaign_id);
+    $stmt->execute();
+    $related_result = $stmt->get_result();
+    if ($related_result) {
+        $related_campaigns = $related_result->fetch_all(MYSQLI_ASSOC);
+    }
+    $stmt->close();
+} else {
+    error_log("Error preparing related campaigns query: " . $conn->error);
+}
 $conn->close();
 
 $target = intval($campaign['target_terkumpul']);
