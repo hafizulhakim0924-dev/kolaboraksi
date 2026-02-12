@@ -825,7 +825,13 @@ Browser Anda tidak mendukung video.
 
 <div class="card">
 <div class="section-title"><i class="fas fa-info-circle"></i> Tentang Kampanye</div>
-<div class="section-content"><p><?= htmlspecialchars($campaign['title']) ?> adalah kampanye penggalangan dana dari masyarakat untuk tujuan kebaikan bersama.</p></div>
+<div class="section-content">
+    <?php if (!empty($campaign['description'])): ?>
+        <p><?= nl2br(htmlspecialchars($campaign['description'])) ?></p>
+    <?php else: ?>
+        <p><?= htmlspecialchars($campaign['title']) ?> adalah kampanye penggalangan dana dari masyarakat untuk tujuan kebaikan bersama.</p>
+    <?php endif; ?>
+</div>
 </div>
 
 <div class="card">

@@ -994,6 +994,83 @@ $conn->close();
             text-align: left;
         }
 
+        /* Banner Popup Modal */
+        .banner-popup-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .banner-popup-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-popup-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            margin: auto;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .banner-popup-image {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .banner-popup-image:hover {
+            transform: scale(1.02);
+        }
+
+        .banner-popup-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            transition: all 0.2s ease;
+            z-index: 10001;
+        }
+
+        .banner-popup-close:hover {
+            background: #f0f0f0;
+            transform: rotate(90deg);
+        }
+
         .zakat-tabs {
             display: flex;
             gap: 6px;
@@ -1436,6 +1513,16 @@ $conn->close();
     </div>
     <iframe id="categoryFrame" class="category-frame"></iframe>
 </div>
+
+        <!-- Banner Popup Modal -->
+        <div id="bannerPopupModal" class="banner-popup-modal" onclick="closeBannerPopup()">
+            <div class="banner-popup-content" onclick="event.stopPropagation()">
+                <button class="banner-popup-close" onclick="closeBannerPopup()" aria-label="Tutup">&times;</button>
+                <a href="http://kolaboraksi.com/kampanye-detail.php?id=5" target="_self" onclick="event.stopPropagation()">
+                    <img src="http://kolaboraksi.com/1.png" alt="Banner Popup" class="banner-popup-image">
+                </a>
+            </div>
+        </div>
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-item active" onclick="switchTab('beranda')">
@@ -1558,6 +1645,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load data
     loadPageData();
+    
+    // Show banner popup after 5 seconds
+    setTimeout(function() {
+        const popup = document.getElementById('bannerPopupModal');
+        if (popup) {
+            popup.classList.add('show');
+        }
+    }, 5000);
 });
 
         function renderCampaigns(campaigns, containerId) {
@@ -1818,9 +1913,30 @@ function closeCategoryFrame() {
             }
         });
 
+        // ==================== BANNER POPUP ====================
+        function showBannerPopup() {
+            const popup = document.getElementById('bannerPopupModal');
+            if (popup) {
+                popup.classList.add('show');
+            }
+        }
+
+        function closeBannerPopup() {
+            const popup = document.getElementById('bannerPopupModal');
+            if (popup) {
+                popup.classList.remove('show');
+            }
+        }
+
+        // Show banner popup after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ KolaborAksi loaded');
             loadPageData();
+            
+            // Show banner popup after 5 seconds
+            setTimeout(function() {
+                showBannerPopup();
+            }, 5000);
         });
     </script>
 </body>
