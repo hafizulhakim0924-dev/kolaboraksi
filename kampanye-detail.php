@@ -588,6 +588,73 @@ if (!function_exists('timeAgo')) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= htmlspecialchars($campaign['title']) ?> | KolaborAksi</title>
+
+<?php
+// Prepare Open Graph data
+$og_title = htmlspecialchars($campaign['title']);
+$og_description = !empty($campaign['description']) ? htmlspecialchars(substr(strip_tags($campaign['description']), 0, 200)) : htmlspecialchars($campaign['title'] . ' - Kampanye penggalangan dana di KolaborAksi');
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$og_url = $protocol . '://' . $host . $_SERVER['REQUEST_URI'];
+$og_site_name = 'KolaborAksi';
+
+// Helper function to convert relative URL to absolute
+function makeAbsoluteUrl($url, $protocol, $host) {
+    if (empty($url)) return '';
+    // If already absolute URL, return as is
+    if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0) {
+        return $url;
+    }
+    // If starts with //, add protocol
+    if (strpos($url, '//') === 0) {
+        return $protocol . ':' . $url;
+    }
+    // Convert relative to absolute
+    return $protocol . '://' . $host . '/' . ltrim($url, '/');
+}
+
+// Get campaign image - prioritize campaign image, then media, then default
+$og_image = '';
+if (!empty($campaign['image'])) {
+    $og_image = makeAbsoluteUrl($campaign['image'], $protocol, $host);
+} elseif (!empty($campaign_media)) {
+    // Find first image in media (skip videos)
+    foreach ($campaign_media as $media) {
+        if ($media['media_type'] === 'image') {
+            $media_url = !empty($media['media_url']) ? $media['media_url'] : $media['media_path'];
+            $og_image = makeAbsoluteUrl($media_url, $protocol, $host);
+            break;
+        }
+    }
+}
+
+// If still no image, use default or emoji placeholder
+if (empty($og_image)) {
+    // Try to use a default logo or create a data URL placeholder
+    $og_image = $protocol . '://' . $host . '/uploads/default-campaign.png';
+}
+?>
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="<?= $og_url ?>">
+<meta property="og:title" content="<?= $og_title ?>">
+<meta property="og:description" content="<?= $og_description ?>">
+<meta property="og:image" content="<?= $og_image ?>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="<?= $og_site_name ?>">
+<meta property="og:locale" content="id_ID">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="<?= $og_url ?>">
+<meta name="twitter:title" content="<?= $og_title ?>">
+<meta name="twitter:description" content="<?= $og_description ?>">
+<meta name="twitter:image" content="<?= $og_image ?>">
+
+<!-- Additional Meta -->
+<meta name="description" content="<?= $og_description ?>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
