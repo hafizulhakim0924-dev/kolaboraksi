@@ -16,6 +16,146 @@ $partner_nama = $_SESSION['partner_nama'];
 /* =========================
    HANDLE SUBMIT FORM
 ========================= */
+// Handle offline donation
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'offline_donation') {
+    // ==== FORM: INPUT DONASI OFFLINE ====
+    $campaign_id = intval($_POST['campaign_id'] ?? 0);
+    $donor_name = mysqli_real_escape_string($conn, trim($_POST['donor_name'] ?? ''));
+    $donor_email = mysqli_real_escape_string($conn, trim($_POST['donor_email'] ?? ''));
+    $donor_phone = mysqli_real_escape_string($conn, trim($_POST['donor_phone'] ?? ''));
+    $amount = intval($_POST['amount'] ?? 0);
+    $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
+    $message = mysqli_real_escape_string($conn, trim($_POST['message'] ?? ''));
+
+    // Validasi
+    if ($campaign_id <= 0) {
+        $_SESSION['error'] = "Silakan pilih kampanye.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    if (empty($donor_name)) {
+        $_SESSION['error'] = "Nama donatur wajib diisi.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    if (empty($donor_email) || !filter_var($donor_email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error'] = "Email tidak valid.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    if (empty($donor_phone)) {
+        $_SESSION['error'] = "Nomor WhatsApp wajib diisi.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    // Format phone number
+    if (substr($donor_phone, 0, 1) === '0') {
+        $donor_phone = '62' . substr($donor_phone, 1);
+    } elseif (substr($donor_phone, 0, 2) !== '62') {
+        $donor_phone = '62' . $donor_phone;
+    }
+
+    if ($amount < 10000) {
+        $_SESSION['error'] = "Minimal donasi adalah Rp 10.000.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    // Cek apakah kampanye ada dan milik partner ini
+    $check_campaign = mysqli_query($conn, "SELECT id, organizer FROM campaigns WHERE id = $campaign_id AND organizer = '$organizer'");
+    if (!$check_campaign || mysqli_num_rows($check_campaign) == 0) {
+        $_SESSION['error'] = "Kampanye tidak ditemukan atau bukan milik Anda.";
+        header("Location: partner_dashboard.php");
+        exit;
+    }
+
+    // Insert donasi offline ke database
+    $fee_total = 0; // Offline tidak ada fee
+    $total_amount = $amount;
+    $payment_method = 'OFFLINE';
+    $payment_channel = 'Donasi Offline';
+    $status = 'PAID'; // Langsung dibayar karena offline
+    $merchant_ref = 'OFF' . time() . rand(1000, 9999);
+
+    // Pastikan tabel donations ada
+    $createDonationsTable = "CREATE TABLE IF NOT EXISTS `donations` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `campaign_id` int(11) NOT NULL,
+        `donor_name` varchar(255) NOT NULL,
+        `donor_email` varchar(255) NOT NULL,
+        `donor_phone` varchar(50) NOT NULL,
+        `amount` int(11) NOT NULL,
+        `fee_total` int(11) DEFAULT 0,
+        `total_amount` int(11) NOT NULL,
+        `payment_method` varchar(50) DEFAULT NULL,
+        `payment_channel` varchar(100) DEFAULT NULL,
+        `tripay_reference` varchar(255) DEFAULT NULL,
+        `tripay_merchant_ref` varchar(255) DEFAULT NULL,
+        `status` enum('UNPAID','PAID','EXPIRED','FAILED') DEFAULT 'UNPAID',
+        `payment_url` text DEFAULT NULL,
+        `qr_url` text DEFAULT NULL,
+        `is_anonymous` tinyint(1) DEFAULT 0,
+        `message` text DEFAULT NULL,
+        `expired_at` datetime DEFAULT NULL,
+        `paid_at` datetime DEFAULT NULL,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `campaign_id` (`campaign_id`),
+        KEY `status` (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    mysqli_query($conn, $createDonationsTable);
+
+    // Pastikan kolom paid_at ada (untuk tabel yang sudah ada)
+    $checkPaidAtColumn = mysqli_query($conn, "SHOW COLUMNS FROM donations LIKE 'paid_at'");
+    if (!$checkPaidAtColumn || mysqli_num_rows($checkPaidAtColumn) == 0) {
+        mysqli_query($conn, "ALTER TABLE donations ADD COLUMN `paid_at` datetime DEFAULT NULL AFTER `expired_at`");
+    }
+
+    // Insert donasi
+    $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at, paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL, NULL, ?, ?, NULL, NOW())");
+    
+    if ($stmt) {
+        $stmt->bind_param("isssiiisssisi", 
+            $campaign_id,
+            $donor_name,
+            $donor_email,
+            $donor_phone,
+            $amount,
+            $fee_total,
+            $total_amount,
+            $payment_method,
+            $payment_channel,
+            $merchant_ref,
+            $status,
+            $is_anonymous,
+            $message
+        );
+
+        if ($stmt->execute()) {
+            // Update donasi_terkumpul di tabel campaigns
+            $update_campaign = mysqli_query($conn, "UPDATE campaigns SET donasi_terkumpul = donasi_terkumpul + $amount WHERE id = $campaign_id");
+            
+            if ($update_campaign) {
+                $_SESSION['success'] = "Donasi offline berhasil ditambahkan! Donatur: " . htmlspecialchars($donor_name) . " - Jumlah: " . rupiah($amount);
+            } else {
+                $_SESSION['error'] = "Donasi berhasil disimpan, namun gagal update total kampanye: " . mysqli_error($conn);
+            }
+        } else {
+            $_SESSION['error'] = "Gagal menyimpan donasi: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        $_SESSION['error'] = "Gagal menyiapkan query: " . mysqli_error($conn);
+    }
+
+    header("Location: partner_dashboard.php");
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'banner') {
     // ==== FORM: SIMPAN BANNER BERANDA ====
     $title    = mysqli_real_escape_string($conn, $_POST['banner_title'] ?? '');
@@ -916,6 +1056,58 @@ button[type="submit"]:hover {
 </select>
 
         <button type="submit">Buat Kampanye</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Input Donasi Offline</h2>
+    <p style="font-size: 13px; color: #555; margin-bottom: 15px;">
+        Gunakan form ini untuk mencatat donasi yang diterima secara offline (tunai, transfer manual, dll). 
+        Donasi akan langsung masuk ke database dan memperbarui total donasi kampanye.
+    </p>
+
+    <form method="POST">
+        <input type="hidden" name="form_type" value="offline_donation">
+        
+        <label>Pilih Kampanye <span style="color: red;">*</span></label>
+        <select name="campaign_id" required>
+            <option value="">-- Pilih Kampanye --</option>
+            <?php if(count($campaigns_list) > 0): ?>
+                <?php foreach($campaigns_list as $camp): ?>
+                    <option value="<?= $camp['id'] ?>"><?= htmlspecialchars($camp['title']) ?> (<?= rupiah($camp['donasi_terkumpul']) ?> / <?= rupiah($camp['target_terkumpul']) ?>)</option>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <option value="" disabled>Belum ada kampanye. Buat kampanye terlebih dahulu.</option>
+            <?php endif; ?>
+        </select>
+
+        <label>Nama Donatur <span style="color: red;">*</span></label>
+        <input type="text" name="donor_name" placeholder="Masukkan nama lengkap donatur" required>
+
+        <label>Email Donatur <span style="color: red;">*</span></label>
+        <input type="email" name="donor_email" placeholder="email@example.com" required>
+
+        <label>Nomor WhatsApp <span style="color: red;">*</span></label>
+        <input type="tel" name="donor_phone" placeholder="08xxxxxxxxxx" required>
+        <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">
+            Format: 08xxxxxxxxxx (akan otomatis dikonversi ke format internasional)
+        </small>
+
+        <label style="margin-top: 12px;">
+            <input type="checkbox" name="is_anonymous" value="1" style="width: auto; margin-right: 8px;">
+            Sembunyikan nama donatur (Anonim)
+        </label>
+
+        <label style="margin-top: 12px;">Jumlah Donasi (Rp) <span style="color: red;">*</span></label>
+        <input type="number" name="amount" min="10000" step="1000" placeholder="Minimal Rp 10.000" required>
+        <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">
+            Minimal donasi: Rp 10.000
+        </small>
+
+        <label style="margin-top: 12px;">Pesan & Doa (Opsional)</label>
+        <textarea name="message" rows="3" placeholder="Pesan atau doa dari donatur..."></textarea>
+
+        <button type="submit">Simpan Donasi Offline</button>
     </form>
 </div>
 
