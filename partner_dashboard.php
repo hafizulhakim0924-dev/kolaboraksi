@@ -624,6 +624,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 /* =========================
+   AJAX: GET DONORS
+========================= */
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_donors') {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    $campaign_id = intval($_GET['campaign_id'] ?? 0);
+    
+    if ($campaign_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid campaign ID']);
+        exit;
+    }
+    
+    // Verifikasi kampanye milik partner ini
+    $check_stmt = $conn->prepare("SELECT id, organizer FROM campaigns WHERE id = ?");
+    if ($check_stmt) {
+        $check_stmt->bind_param("i", $campaign_id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        
+        if (!$check_result || $check_result->num_rows == 0) {
+            $check_stmt->close();
+            echo json_encode(['success' => false, 'message' => 'Kampanye tidak ditemukan']);
+            exit;
+        }
+        
+        $campaign_data = $check_result->fetch_assoc();
+        $check_stmt->close();
+        
+        // Verifikasi organizer (case-insensitive)
+        if (strtolower(trim($campaign_data['organizer'])) !== strtolower(trim($organizer))) {
+            echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses ke kampanye ini']);
+            exit;
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        exit;
+    }
+    
+    // Get donations
+    $donors_stmt = $conn->prepare("SELECT id, donor_name, donor_email, donor_phone, amount, message, is_anonymous, status, created_at, paid_at FROM donations WHERE campaign_id = ? ORDER BY created_at DESC");
+    
+    if ($donors_stmt) {
+        $donors_stmt->bind_param("i", $campaign_id);
+        $donors_stmt->execute();
+        $donors_result = $donors_stmt->get_result();
+        
+        $donors = [];
+        $total_donors = 0;
+        $total_amount = 0;
+        $paid_amount = 0;
+        
+        while ($row = $donors_result->fetch_assoc()) {
+            $donors[] = $row;
+            $total_donors++;
+            $total_amount += intval($row['amount']);
+            if ($row['status'] === 'PAID') {
+                $paid_amount += intval($row['amount']);
+            }
+        }
+        
+        $donors_stmt->close();
+        
+        echo json_encode([
+            'success' => true,
+            'donors' => $donors,
+            'summary' => [
+                'total_donors' => $total_donors,
+                'total_amount' => $total_amount,
+                'paid_amount' => $paid_amount
+            ]
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Gagal mengambil data donatur']);
+    }
+    
+    exit;
+}
+
+/* =========================
    GET STATISTICS
 ========================= */
 $organizer = mysqli_real_escape_string($conn, $partner_nama);
@@ -894,7 +973,7 @@ button[type="submit"]:hover {
     flex-wrap: wrap;
 }
 
-.btn-detail, .btn-edit, .btn-delete {
+.btn-detail, .btn-edit, .btn-delete, .btn-donatur {
     padding: 8px 16px;
     border-radius: 8px;
     text-decoration: none;
@@ -904,10 +983,18 @@ button[type="submit"]:hover {
     flex: 1;
     text-align: center;
     min-width: 80px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-detail {
     background: #17a697;
+    color: white;
+}
+
+.btn-donatur {
+    background: #6c757d;
     color: white;
 }
 
@@ -921,7 +1008,7 @@ button[type="submit"]:hover {
     color: white;
 }
 
-.btn-detail:hover, .btn-edit:hover, .btn-delete:hover {
+.btn-detail:hover, .btn-edit:hover, .btn-delete:hover, .btn-donatur:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
@@ -930,6 +1017,236 @@ button[type="submit"]:hover {
     text-align: center;
     padding: 40px 20px;
     color: #999;
+}
+
+/* Modal Donatur */
+.donor-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.donor-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.donor-modal-content {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease-in-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.donor-modal-header {
+    background: linear-gradient(135deg, #17a697 0%, #0f6f5f 100%);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.donor-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.donor-modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.donor-modal-close:hover {
+    background: rgba(255,255,255,0.3);
+    transform: rotate(90deg);
+}
+
+.donor-modal-body {
+    padding: 24px;
+}
+
+.donors-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.donors-table thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.donors-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.donors-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #555;
+}
+
+.donors-table tbody tr {
+    transition: all 0.2s;
+}
+
+.donors-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.donors-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.donor-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.donor-amount {
+    font-weight: 700;
+    color: #17a697;
+    font-size: 15px;
+}
+
+.donor-anonymous {
+    color: #999;
+    font-style: italic;
+}
+
+.donor-message {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #666;
+}
+
+.donor-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.donor-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.donor-status.paid {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.donor-status.unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.donor-summary {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.donor-summary-item {
+    text-align: center;
+}
+
+.donor-summary-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.donor-summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #17a697;
+}
+
+.loading-donors {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.loading-donors .spinner {
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid #17a697;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 @media (min-width: 768px) {
@@ -962,6 +1279,31 @@ button[type="submit"]:hover {
     .campaign-stats {
         flex-direction: row;
         gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .donors-table {
+        font-size: 12px;
+    }
+    
+    .donors-table th,
+    .donors-table td {
+        padding: 8px 6px;
+    }
+    
+    .donor-message {
+        max-width: 120px;
+    }
+    
+    .donor-summary {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .donor-modal-content {
+        margin: 10px;
+        max-height: 95vh;
     }
 }
 </style>
@@ -1184,6 +1526,7 @@ button[type="submit"]:hover {
             </div>
             <div class="campaign-actions">
                 <a href="kampanye-detail.php?id=<?= $c['id'] ?>" class="btn-detail">Detail</a>
+                <button type="button" class="btn-donatur" onclick="showDonors(<?= $c['id'] ?>, '<?= htmlspecialchars(addslashes($c['title'])) ?>')">Lihat Donatur</button>
                 <a href="edit_campaign.php?id=<?= $c['id'] ?>" class="btn-edit">Edit</a>
                 <a href="hapus_campaign.php?id=<?= $c['id'] ?>" class="btn-delete" onclick="return confirm('Hapus kampanye?')">Hapus</a>
             </div>
@@ -1197,6 +1540,137 @@ button[type="submit"]:hover {
 <?php endif; ?>
 </div>
 </div>
+
+<!-- Modal Donatur -->
+<div id="donorModal" class="donor-modal" onclick="closeDonorModal()">
+    <div class="donor-modal-content" onclick="event.stopPropagation()">
+        <div class="donor-modal-header">
+            <h3 class="donor-modal-title" id="donorModalTitle">Daftar Donatur</h3>
+            <button class="donor-modal-close" onclick="closeDonorModal()">&times;</button>
+        </div>
+        <div class="donor-modal-body" id="donorModalBody">
+            <div class="loading-donors">
+                <div class="spinner"></div>
+                <p>Memuat data donatur...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDonors(campaignId, campaignTitle) {
+    const modal = document.getElementById('donorModal');
+    const modalBody = document.getElementById('donorModalBody');
+    const modalTitle = document.getElementById('donorModalTitle');
+    
+    modalTitle.textContent = 'Daftar Donatur - ' + campaignTitle;
+    modal.classList.add('show');
+    modalBody.innerHTML = '<div class="loading-donors"><div class="spinner"></div><p>Memuat data donatur...</p></div>';
+    
+    // Fetch data donatur via AJAX
+    fetch('?ajax=get_donors&campaign_id=' + campaignId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderDonorsTable(data.donors, data.summary);
+            } else {
+                modalBody.innerHTML = '<div class="alert error">' + (data.message || 'Gagal memuat data donatur') + '</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalBody.innerHTML = '<div class="alert error">Terjadi kesalahan saat memuat data donatur.</div>';
+        });
+}
+
+function renderDonorsTable(donors, summary) {
+    const modalBody = document.getElementById('donorModalBody');
+    
+    if (!donors || donors.length === 0) {
+        modalBody.innerHTML = '<div class="empty-state"><p>Belum ada donatur untuk kampanye ini.</p></div>';
+        return;
+    }
+    
+    let html = '<div class="donor-summary">';
+    html += '<div class="donor-summary-item"><div class="donor-summary-label">Total Donatur</div><div class="donor-summary-value">' + summary.total_donors + '</div></div>';
+    html += '<div class="donor-summary-item"><div class="donor-summary-label">Total Donasi</div><div class="donor-summary-value">' + formatRupiah(summary.total_amount) + '</div></div>';
+    html += '<div class="donor-summary-item"><div class="donor-summary-label">Donasi Terbayar</div><div class="donor-summary-value">' + formatRupiah(summary.paid_amount) + '</div></div>';
+    html += '</div>';
+    
+    html += '<table class="donors-table">';
+    html += '<thead><tr>';
+    html += '<th style="width: 40px;">No</th>';
+    html += '<th>Nama Donatur</th>';
+    html += '<th>Email</th>';
+    html += '<th>WhatsApp</th>';
+    html += '<th style="text-align: right;">Jumlah Donasi</th>';
+    html += '<th>Pesan & Doa</th>';
+    html += '<th>Tanggal</th>';
+    html += '<th>Status</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+    
+    donors.forEach((donor, index) => {
+        const donorName = donor.is_anonymous == 1 ? '<span class="donor-anonymous">Donatur Anonim</span>' : '<span class="donor-name">' + escapeHtml(donor.donor_name) + '</span>';
+        const donorEmail = donor.donor_email ? escapeHtml(donor.donor_email) : '<span style="color: #999;">-</span>';
+        // Format nomor WhatsApp: jika dimulai dengan 62, ubah ke 0
+        let donorPhone = donor.donor_phone ? escapeHtml(donor.donor_phone) : '<span style="color: #999;">-</span>';
+        if (donor.donor_phone && donor.donor_phone.startsWith('62')) {
+            donorPhone = '0' + escapeHtml(donor.donor_phone.substring(2));
+        }
+        const donorMessage = donor.message ? '<span class="donor-message" title="' + escapeHtml(donor.message) + '">' + escapeHtml(donor.message) + '</span>' : '<span style="color: #999;">-</span>';
+        const donorDate = formatDate(donor.created_at);
+        const donorStatus = donor.status === 'PAID' ? '<span class="donor-status paid">Lunas</span>' : '<span class="donor-status unpaid">Belum Lunas</span>';
+        const donorAmount = formatRupiah(donor.amount);
+        
+        html += '<tr>';
+        html += '<td>' + (index + 1) + '</td>';
+        html += '<td>' + donorName + '</td>';
+        html += '<td>' + donorEmail + '</td>';
+        html += '<td>' + donorPhone + '</td>';
+        html += '<td style="text-align: right;"><span class="donor-amount">' + donorAmount + '</span></td>';
+        html += '<td>' + donorMessage + '</td>';
+        html += '<td><span class="donor-date">' + donorDate + '</span></td>';
+        html += '<td>' + donorStatus + '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    
+    modalBody.innerHTML = html;
+}
+
+function closeDonorModal() {
+    document.getElementById('donorModal').classList.remove('show');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatRupiah(amount) {
+    return 'Rp ' + amount.toLocaleString('id-ID');
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+}
+
+// Close modal when clicking outside
+document.getElementById('donorModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDonorModal();
+    }
+});
+</script>
 
 </body>
 </html>
