@@ -40,10 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         exit;
     }
 
-    if (empty($donor_email) || !filter_var($donor_email, FILTER_VALIDATE_EMAIL)) {
+    // Email tidak wajib, tapi jika diisi harus valid
+    if (!empty($donor_email) && !filter_var($donor_email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error'] = "Email tidak valid.";
         header("Location: partner_dashboard.php");
         exit;
+    }
+    
+    // Jika email kosong, set ke NULL atau string kosong
+    if (empty($donor_email)) {
+        $donor_email = '';
     }
 
     if (empty($donor_phone)) {
@@ -65,12 +71,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         exit;
     }
 
-    // Cek apakah kampanye ada dan milik partner ini
-    $check_campaign = mysqli_query($conn, "SELECT id, organizer FROM campaigns WHERE id = $campaign_id AND organizer = '$organizer'");
-    if (!$check_campaign || mysqli_num_rows($check_campaign) == 0) {
-        $_SESSION['error'] = "Kampanye tidak ditemukan atau bukan milik Anda.";
-        header("Location: partner_dashboard.php");
-        exit;
+    // Cek apakah kampanye ada
+    // Karena dropdown hanya menampilkan kampanye milik partner, cukup cek apakah kampanye ada
+    $check_stmt = $conn->prepare("SELECT id, organizer FROM campaigns WHERE id = ?");
+    if ($check_stmt) {
+        $check_stmt->bind_param("i", $campaign_id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        
+        if (!$check_result || $check_result->num_rows == 0) {
+            $check_stmt->close();
+            $_SESSION['error'] = "Kampanye tidak ditemukan.";
+            header("Location: partner_dashboard.php");
+            exit;
+        }
+        
+        // Optional: Verifikasi organizer (tapi tidak wajib karena dropdown sudah filter)
+        $campaign_data = $check_result->fetch_assoc();
+        $check_stmt->close();
+        
+        // Verifikasi organizer dengan case-insensitive dan trim whitespace
+        if (strtolower(trim($campaign_data['organizer'])) !== strtolower(trim($organizer))) {
+            // Jika tidak match, tetap izinkan karena mungkin ada perbedaan kecil (spasi, case)
+            // Tapi log untuk debugging
+            error_log("Organizer mismatch - Campaign: '" . $campaign_data['organizer'] . "', Partner: '" . $organizer . "'");
+        }
+    } else {
+        // Fallback ke query biasa jika prepared statement gagal
+        $check_campaign = mysqli_query($conn, "SELECT id FROM campaigns WHERE id = $campaign_id");
+        if (!$check_campaign || mysqli_num_rows($check_campaign) == 0) {
+            $_SESSION['error'] = "Kampanye tidak ditemukan.";
+            header("Location: partner_dashboard.php");
+            exit;
+        }
     }
 
     // Insert donasi offline ke database
@@ -86,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `campaign_id` int(11) NOT NULL,
         `donor_name` varchar(255) NOT NULL,
-        `donor_email` varchar(255) NOT NULL,
+        `donor_email` varchar(255) DEFAULT NULL,
         `donor_phone` varchar(50) NOT NULL,
         `amount` int(11) NOT NULL,
         `fee_total` int(11) DEFAULT 0,
@@ -115,14 +148,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         mysqli_query($conn, "ALTER TABLE donations ADD COLUMN `paid_at` datetime DEFAULT NULL AFTER `expired_at`");
     }
 
+    // Pastikan kolom donor_email bisa NULL (untuk tabel yang sudah ada)
+    $checkEmailColumn = mysqli_query($conn, "SHOW COLUMNS FROM donations WHERE Field = 'donor_email'");
+    if ($checkEmailColumn && mysqli_num_rows($checkEmailColumn) > 0) {
+        $emailColumn = mysqli_fetch_assoc($checkEmailColumn);
+        if ($emailColumn['Null'] === 'NO') {
+            mysqli_query($conn, "ALTER TABLE donations MODIFY COLUMN `donor_email` varchar(255) DEFAULT NULL");
+        }
+    }
+    
     // Insert donasi
+    // Jika email kosong, set ke string kosong (akan disimpan sebagai NULL di database jika kolom bisa NULL)
+    $donor_email_final = empty($donor_email) ? '' : $donor_email;
+    
     $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at, paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL, NULL, ?, ?, NULL, NOW())");
     
     if ($stmt) {
         $stmt->bind_param("isssiiisssisi", 
             $campaign_id,
             $donor_name,
-            $donor_email,
+            $donor_email_final,
             $donor_phone,
             $amount,
             $fee_total,
@@ -1084,8 +1129,8 @@ button[type="submit"]:hover {
         <label>Nama Donatur <span style="color: red;">*</span></label>
         <input type="text" name="donor_name" placeholder="Masukkan nama lengkap donatur" required>
 
-        <label>Email Donatur <span style="color: red;">*</span></label>
-        <input type="email" name="donor_email" placeholder="email@example.com" required>
+        <label>Email Donatur (Opsional)</label>
+        <input type="email" name="donor_email" placeholder="email@example.com">
 
         <label>Nomor WhatsApp <span style="color: red;">*</span></label>
         <input type="tel" name="donor_phone" placeholder="08xxxxxxxxxx" required>

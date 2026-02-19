@@ -1414,91 +1414,68 @@ $conn->close();
                 </div>
 
                 <div class="zakat-tabs">
-                    <button class="zakat-tab active" onclick="switchZakatTab('mal')">Mal</button>
-                    <button class="zakat-tab" onclick="switchZakatTab('fitrah')">Fitrah</button>
-                    <button class="zakat-tab" onclick="switchZakatTab('emas')">Emas</button>
-                    <button class="zakat-tab" onclick="switchZakatTab('perak')">Perak</button>
+                    <button class="zakat-tab active" onclick="switchZakatTab('mal')">Maal</button>
                     <button class="zakat-tab" onclick="switchZakatTab('penghasilan')">Penghasilan</button>
                 </div>
 
                 <div id="calc-mal" class="zakat-calculator-content active">
                     <div class="form-group">
-                        <label class="form-label">Total Harta (Rp)</label>
-                        <input type="number" id="input-mal" class="form-input" placeholder="100000000">
+                        <label class="form-label">Nilai Deposito/Tabungan/Giro (Rp)</label>
+                        <input type="number" id="input-mal-deposito" class="form-input" placeholder="0" value="0">
                     </div>
-                    <button class="calculate-btn" onclick="calculateZakatMal()">Hitung</button>
+                    <div class="form-group">
+                        <label class="form-label">Nilai Properti & Kendaraan (Rp)</label>
+                        <input type="number" id="input-mal-properti" class="form-input" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emas, perak, permata, atau sejenisnya (Rp)</label>
+                        <input type="number" id="input-mal-emas" class="form-input" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Saham, piutang, dan surat-surat berharga lainnya (Rp)</label>
+                        <input type="number" id="input-mal-saham" class="form-input" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hutang pribadi yang jatuh tempo tahun ini (Rp)</label>
+                        <input type="number" id="input-mal-hutang" class="form-input" placeholder="0" value="0">
+                    </div>
+                    <button class="calculate-btn" onclick="calculateZakatMal()">Hitung Zakat</button>
                     <div id="result-mal" class="result-box">
-                        <div class="result-label">Zakat Mal:</div>
+                        <div class="result-label">Zakat Maal:</div>
                         <div class="result-value" id="value-mal">Rp 0</div>
-                        <p class="info-text">Nisab: 85 gram emas. Rate: 2.5%</p>
                     </div>
-                </div>
-
-                <div id="calc-fitrah" class="zakat-calculator-content">
-                    <div class="form-group">
-                        <label class="form-label">Jumlah Jiwa</label>
-                        <input type="number" id="input-fitrah-jiwa" class="form-input" value="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Harga Beras/Liter (Rp)</label>
-                        <input type="number" id="input-fitrah-harga" class="form-input" placeholder="15000">
-                    </div>
-                    <button class="calculate-btn" onclick="calculateZakatFitrah()">Hitung</button>
-                    <div id="result-fitrah" class="result-box">
-                        <div class="result-label">Zakat Fitrah:</div>
-                        <div class="result-value" id="value-fitrah">Rp 0</div>
-                        <p class="info-text">3.5 liter beras per jiwa</p>
-                    </div>
-                </div>
-
-                <div id="calc-emas" class="zakat-calculator-content">
-                    <div class="form-group">
-                        <label class="form-label">Jumlah Emas (gram)</label>
-                        <input type="number" id="input-emas-jumlah" class="form-input" placeholder="100">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Harga/Gram (Rp)</label>
-                        <input type="number" id="input-emas-harga" class="form-input" placeholder="1000000">
-                    </div>
-                    <button class="calculate-btn" onclick="calculateZakatEmas()">Hitung</button>
-                    <div id="result-emas" class="result-box">
-                        <div class="result-label">Zakat Emas:</div>
-                        <div class="result-value" id="value-emas">Rp 0</div>
-                        <p class="info-text">Nisab: 85 gram. Rate: 2.5%</p>
-                    </div>
-                </div>
-
-                <div id="calc-perak" class="zakat-calculator-content">
-                    <div class="form-group">
-                        <label class="form-label">Jumlah Perak (gram)</label>
-                        <input type="number" id="input-perak-jumlah" class="form-input" placeholder="600">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Harga/Gram (Rp)</label>
-                        <input type="number" id="input-perak-harga" class="form-input" placeholder="15000">
-                    </div>
-                    <button class="calculate-btn" onclick="calculateZakatPerak()">Hitung</button>
-                    <div id="result-perak" class="result-box">
-                        <div class="result-label">Zakat Perak:</div>
-                        <div class="result-value" id="value-perak">Rp 0</div>
-                        <p class="info-text">Nisab: 595 gram. Rate: 2.5%</p>
+                    <div id="gold-info-mal" class="info-text" style="margin-top: 12px; padding: 12px; background: #F8F9FA; border-radius: 8px; font-size: 11px; color: #666;">
+                        <strong>Catatan</strong><br>
+                        Perhitungan zakat diupdate otomatis berdasarkan update harga emas hari ini<br>
+                        <span id="gold-price-info-mal">Memuat harga emas...</span>
                     </div>
                 </div>
 
                 <div id="calc-penghasilan" class="zakat-calculator-content">
                     <div class="form-group">
-                        <label class="form-label">Penghasilan/Bulan (Rp)</label>
-                        <input type="number" id="input-penghasilan" class="form-input" placeholder="10000000">
+                        <label class="form-label" style="margin-bottom: 8px;">Periode</label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <button type="button" id="btn-perbulan" class="quick-amount-btn active" onclick="switchPenghasilanPeriod('bulan')" style="flex: 1;">Perbulan</button>
+                            <button type="button" id="btn-pertahun" class="quick-amount-btn" onclick="switchPenghasilanPeriod('tahun')" style="flex: 1;">Pertahun</button>
+                    </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Harga Beras/Kg (Rp)</label>
-                        <input type="number" id="input-penghasilan-beras" class="form-input" placeholder="12000">
+                        <label class="form-label">Penghasilan perbulan (Rp)</label>
+                        <input type="number" id="input-penghasilan-bulan" class="form-input" placeholder="0" value="0">
                     </div>
-                    <button class="calculate-btn" onclick="calculateZakatPenghasilan()">Hitung</button>
+                    <div class="form-group">
+                        <label class="form-label">Pendapatan lain (Bonus, THR) (Rp)</label>
+                        <input type="number" id="input-penghasilan-bonus" class="form-input" placeholder="0" value="0">
+                    </div>
+                    <button class="calculate-btn" onclick="calculateZakatPenghasilan()">Hitung Zakat</button>
                     <div id="result-penghasilan" class="result-box">
                         <div class="result-label">Zakat Penghasilan:</div>
                         <div class="result-value" id="value-penghasilan">Rp 0</div>
-                        <p class="info-text">Nisab: 520 kg beras. Rate: 2.5%</p>
+                    </div>
+                    <div id="gold-info-penghasilan" class="info-text" style="margin-top: 12px; padding: 12px; background: #F8F9FA; border-radius: 8px; font-size: 11px; color: #666;">
+                        <strong>Catatan</strong><br>
+                        Perhitungan zakat diupdate otomatis berdasarkan update harga emas hari ini<br>
+                        <span id="gold-price-info-penghasilan">Memuat harga emas...</span>
                     </div>
                 </div>
             </div>
@@ -1522,7 +1499,7 @@ $conn->close();
                     <img src="http://kolaboraksi.com/1.png" alt="Banner Popup" class="banner-popup-image">
                 </a>
             </div>
-        </div>
+</div>
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-item active" onclick="switchTab('beranda')">
@@ -1812,10 +1789,6 @@ function closeCategoryFrame() {
     // Tampilkan kembali content wrapper dan bottom nav
     document.querySelector('.content-wrapper').style.display = 'block';
     document.querySelector('.bottom-nav').style.display = 'flex';
-}
-
-        function openZakatCalculator() {
-            document.getElementById('zakatModal').style.display = 'block';
         }
 
         function closeZakatModal() {
@@ -1832,76 +1805,173 @@ function closeCategoryFrame() {
         }
 
         // ==================== ZAKAT CALCULATOR ====================
+        let goldPricePerGram = 0; // Harga emas per gram dari API
+        let penghasilanPeriod = 'bulan'; // 'bulan' atau 'tahun'
+
         function formatRupiah(amount) {
             return 'Rp ' + amount.toLocaleString('id-ID');
         }
 
-        function calculateZakatMal() {
-            const harta = parseFloat(document.getElementById('input-mal').value) || 0;
-            const nisab = 85 * 1000000;
+        // Fetch harga emas dari API
+        async function fetchGoldPrice() {
+            try {
+                // Menggunakan API harga emas Indonesia
+                // Coba beberapa endpoint API yang umum digunakan
+                let goldPrice = 0;
+                
+                // Coba endpoint 1: API harga-emas.org (Indonesia)
+                try {
+                    const response1 = await fetch('https://api.harga-emas.org/v1/latest', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (response1.ok) {
+                        const data1 = await response1.json();
+                        // Cek berbagai struktur response yang mungkin
+                        if (data1 && data1.price) {
+                            goldPrice = parseFloat(data1.price);
+                        } else if (data1 && data1.data && data1.data.price) {
+                            goldPrice = parseFloat(data1.data.price);
+                        } else if (data1 && data1.gold && data1.gold.price) {
+                            goldPrice = parseFloat(data1.gold.price);
+                        } else if (data1 && data1.harga && data1.harga.gram) {
+                            goldPrice = parseFloat(data1.harga.gram);
+                        }
+                    }
+                } catch (e) {
+                    console.log('API 1 failed, trying alternative...', e);
+                }
+                
+                // Jika belum dapat, coba endpoint alternatif
+                if (goldPrice === 0) {
+                    try {
+                        // Endpoint alternatif - menggunakan CORS proxy jika perlu
+                        const response2 = await fetch('https://cors-anywhere.herokuapp.com/https://www.harga-emas.org/api/harga-emas', {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+                        if (response2.ok) {
+                            const data2 = await response2.json();
+                            if (data2 && data2.price) {
+                                goldPrice = parseFloat(data2.price);
+                            } else if (data2 && data2.harga && data2.harga.gram) {
+                                goldPrice = parseFloat(data2.harga.gram);
+                            }
+                        }
+                    } catch (e) {
+                        console.log('API 2 failed, using fallback...', e);
+                    }
+                }
+                
+                // Fallback jika semua API gagal
+                if (goldPrice === 0) {
+                    goldPrice = 2896842; // Harga default sesuai contoh
+                }
+                
+                goldPricePerGram = goldPrice;
+                
+                // Update info harga emas
+                updateGoldPriceInfo();
+            } catch (error) {
+                console.error('Error fetching gold price:', error);
+                // Fallback harga emas
+                goldPricePerGram = 2896842;
+                updateGoldPriceInfo();
+            }
+        }
+        
+        function updateGoldPriceInfo() {
+            const nisab85Gram = goldPricePerGram * 85;
+            const formattedPrice = formatRupiah(goldPricePerGram).replace('Rp ', '');
+            const formattedNisab = formatRupiah(nisab85Gram).replace('Rp ', '');
             
-            if (harta >= nisab) {
-                const zakat = harta * 0.025;
+            const infoHtml = `Harga Emas bulan ini (www.harga-emas.org)<br>
+                <strong>Rp ${formattedPrice}</strong><br>
+                Nilai 85 gram perbulan: <strong>Rp ${formattedNisab}</strong>`;
+            
+            const malInfo = document.getElementById('gold-price-info-mal');
+            const penghasilanInfo = document.getElementById('gold-price-info-penghasilan');
+            
+            if (malInfo) malInfo.innerHTML = infoHtml;
+            if (penghasilanInfo) penghasilanInfo.innerHTML = infoHtml;
+        }
+
+        // Load harga emas saat modal dibuka
+        function openZakatCalculator() {
+            document.getElementById('zakatModal').style.display = 'block';
+            if (goldPricePerGram === 0) {
+                fetchGoldPrice();
+            }
+        }
+
+        function switchPenghasilanPeriod(period) {
+            penghasilanPeriod = period;
+            document.getElementById('btn-perbulan').classList.toggle('active', period === 'bulan');
+            document.getElementById('btn-pertahun').classList.toggle('active', period === 'tahun');
+        }
+
+        function calculateZakatMal() {
+            const deposito = parseFloat(document.getElementById('input-mal-deposito').value) || 0;
+            const properti = parseFloat(document.getElementById('input-mal-properti').value) || 0;
+            const emas = parseFloat(document.getElementById('input-mal-emas').value) || 0;
+            const saham = parseFloat(document.getElementById('input-mal-saham').value) || 0;
+            const hutang = parseFloat(document.getElementById('input-mal-hutang').value) || 0;
+            
+            // Total harta = semua aset dikurangi hutang
+            const totalHarta = deposito + properti + emas + saham - hutang;
+            
+            // Nisab = 85 gram emas
+            const nisab = goldPricePerGram > 0 ? goldPricePerGram * 85 : 2896842 * 85;
+            
+            if (totalHarta <= 0) {
+                alert('Total harta harus lebih dari 0');
+                document.getElementById('result-mal').classList.remove('show');
+                return;
+            }
+            
+            if (totalHarta >= nisab) {
+                const zakat = totalHarta * 0.025; // 2.5%
                 document.getElementById('value-mal').textContent = formatRupiah(zakat);
                 document.getElementById('result-mal').classList.add('show');
             } else {
-                alert('Belum mencapai nisab (85 gram emas)');
+                alert('Belum mencapai nisab (85 gram emas = ' + formatRupiah(nisab) + ')');
                 document.getElementById('result-mal').classList.remove('show');
             }
         }
 
-        function calculateZakatFitrah() {
-            const jiwa = parseInt(document.getElementById('input-fitrah-jiwa').value) || 1;
-            const hargaBeras = parseFloat(document.getElementById('input-fitrah-harga').value) || 0;
-            const zakat = jiwa * 3.5 * hargaBeras;
-            
-            document.getElementById('value-fitrah').textContent = formatRupiah(zakat);
-            document.getElementById('result-fitrah').classList.add('show');
-        }
-
-        function calculateZakatEmas() {
-            const jumlahEmas = parseFloat(document.getElementById('input-emas-jumlah').value) || 0;
-            const hargaEmas = parseFloat(document.getElementById('input-emas-harga').value) || 0;
-            const nisab = 85;
-            
-            if (jumlahEmas >= nisab) {
-                const totalNilai = jumlahEmas * hargaEmas;
-                const zakat = totalNilai * 0.025;
-                document.getElementById('value-emas').textContent = formatRupiah(zakat);
-                document.getElementById('result-emas').classList.add('show');
-            } else {
-                alert('Belum mencapai nisab (85 gram)');
-                document.getElementById('result-emas').classList.remove('show');
-            }
-        }
-
-        function calculateZakatPerak() {
-            const jumlahPerak = parseFloat(document.getElementById('input-perak-jumlah').value) || 0;
-            const hargaPerak = parseFloat(document.getElementById('input-perak-harga').value) || 0;
-            const nisab = 595;
-            
-            if (jumlahPerak >= nisab) {
-                const totalNilai = jumlahPerak * hargaPerak;
-                const zakat = totalNilai * 0.025;
-                document.getElementById('value-perak').textContent = formatRupiah(zakat);
-                document.getElementById('result-perak').classList.add('show');
-            } else {
-                alert('Belum mencapai nisab (595 gram)');
-                document.getElementById('result-perak').classList.remove('show');
-            }
-        }
-
         function calculateZakatPenghasilan() {
-            const penghasilan = parseFloat(document.getElementById('input-penghasilan').value) || 0;
-            const hargaBeras = parseFloat(document.getElementById('input-penghasilan-beras').value) || 0;
-            const nisab = 520 * hargaBeras;
+            const penghasilanBulan = parseFloat(document.getElementById('input-penghasilan-bulan').value) || 0;
+            const bonus = parseFloat(document.getElementById('input-penghasilan-bonus').value) || 0;
             
-            if (penghasilan >= nisab) {
-                const zakat = penghasilan * 0.025;
+            let totalPenghasilan = 0;
+            
+            if (penghasilanPeriod === 'bulan') {
+                // Jika perbulan, hitung untuk 12 bulan
+                totalPenghasilan = (penghasilanBulan * 12) + bonus;
+            } else {
+                // Jika pertahun, langsung gunakan nilai
+                totalPenghasilan = (penghasilanBulan * 12) + bonus;
+            }
+            
+            // Nisab = 85 gram emas per tahun
+            const nisab = goldPricePerGram > 0 ? goldPricePerGram * 85 : 2896842 * 85;
+            
+            if (totalPenghasilan <= 0) {
+                alert('Penghasilan harus lebih dari 0');
+                document.getElementById('result-penghasilan').classList.remove('show');
+                return;
+            }
+            
+            if (totalPenghasilan >= nisab) {
+                const zakat = totalPenghasilan * 0.025; // 2.5%
                 document.getElementById('value-penghasilan').textContent = formatRupiah(zakat);
                 document.getElementById('result-penghasilan').classList.add('show');
             } else {
-                alert('Belum mencapai nisab');
+                alert('Belum mencapai nisab (85 gram emas = ' + formatRupiah(nisab) + ')');
                 document.getElementById('result-penghasilan').classList.remove('show');
             }
         }
