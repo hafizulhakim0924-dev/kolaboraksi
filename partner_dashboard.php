@@ -20,12 +20,12 @@ $partner_nama = $_SESSION['partner_nama'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POST['form_type'] === 'offline_donation') {
     // ==== FORM: INPUT DONASI OFFLINE ====
     $campaign_id = intval($_POST['campaign_id'] ?? 0);
-    $donor_name = mysqli_real_escape_string($conn, trim($_POST['donor_name'] ?? ''));
-    $donor_email = mysqli_real_escape_string($conn, trim($_POST['donor_email'] ?? ''));
-    $donor_phone = mysqli_real_escape_string($conn, trim($_POST['donor_phone'] ?? ''));
+    $donor_name = trim($_POST['donor_name'] ?? '');
+    $donor_email = trim($_POST['donor_email'] ?? '');
+    $donor_phone = trim($_POST['donor_phone'] ?? '');
     $amount = intval($_POST['amount'] ?? 0);
     $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
-    $message = mysqli_real_escape_string($conn, trim($_POST['message'] ?? ''));
+    $message = trim($_POST['message'] ?? '');
 
     // Validasi
     if ($campaign_id <= 0) {
@@ -106,14 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         }
     }
 
-    // Insert donasi offline ke database
-    $fee_total = 0; // Offline tidak ada fee
-    $total_amount = $amount;
-    $payment_method = 'OFFLINE';
-    $payment_channel = 'Donasi Offline';
-    $status = 'PAID'; // Langsung dibayar karena offline
-    $merchant_ref = 'OFF' . time() . rand(1000, 9999);
-
     // Pastikan tabel donations ada
     $createDonationsTable = "CREATE TABLE IF NOT EXISTS `donations` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -157,47 +149,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         }
     }
     
-    // Insert donasi
-    // Jika email kosong, set ke NULL
-    $donor_email_final = empty($donor_email) ? null : $donor_email;
-    // Jika message kosong, set ke NULL (atau string kosong jika kolom tidak bisa NULL)
-    $message_final = empty($message) ? null : $message;
+    // Insert donasi offline ke database
+    // Pastikan status adalah PAID untuk donasi offline
+    $status = 'PAID';
+    $fee_total = 0; // Offline tidak ada fee
+    $total_amount = $amount;
+    $payment_method = 'OFFLINE';
+    $payment_channel = 'Donasi Offline';
+    $merchant_ref = 'OFF' . time() . rand(1000, 9999);
     
-    $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at, paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL, NULL, ?, ?, NULL, NOW())");
+    // Escape values untuk keamanan
+    $campaign_id_escaped = intval($campaign_id);
+    $donor_name_escaped = mysqli_real_escape_string($conn, $donor_name);
+    $donor_phone_escaped = mysqli_real_escape_string($conn, $donor_phone);
+    $amount_escaped = intval($amount);
+    $fee_total_escaped = 0;
+    $total_amount_escaped = $amount_escaped;
+    $payment_method_escaped = mysqli_real_escape_string($conn, 'OFFLINE');
+    $payment_channel_escaped = mysqli_real_escape_string($conn, 'Donasi Offline');
+    $merchant_ref_escaped = mysqli_real_escape_string($conn, 'OFF' . time() . rand(1000, 9999));
+    $status_escaped = mysqli_real_escape_string($conn, $status);
+    $is_anonymous_escaped = intval($is_anonymous);
     
-    if ($stmt) {
-        // Bind parameters - 's' untuk string bisa handle NULL
-        $stmt->bind_param("isssiiisssisi", 
-            $campaign_id,
-            $donor_name,
-            $donor_email_final,
-            $donor_phone,
-            $amount,
-            $fee_total,
-            $total_amount,
-            $payment_method,
-            $payment_channel,
-            $merchant_ref,
-            $status,
-            $is_anonymous,
-            $message_final
-        );
-
-        if ($stmt->execute()) {
-            // Update donasi_terkumpul di tabel campaigns
-            $update_campaign = mysqli_query($conn, "UPDATE campaigns SET donasi_terkumpul = donasi_terkumpul + $amount WHERE id = $campaign_id");
-            
-            if ($update_campaign) {
-                $_SESSION['success'] = "Donasi offline berhasil ditambahkan! Donatur: " . htmlspecialchars($donor_name) . " - Jumlah: " . rupiah($amount);
-            } else {
-                $_SESSION['error'] = "Donasi berhasil disimpan, namun gagal update total kampanye: " . mysqli_error($conn);
-            }
-        } else {
-            $_SESSION['error'] = "Gagal menyimpan donasi: " . $stmt->error;
-        }
-        $stmt->close();
+    // Handle email - jika kosong, gunakan NULL, jika tidak kosong, escape
+    if (empty($donor_email)) {
+        $donor_email_sql = "NULL";
     } else {
-        $_SESSION['error'] = "Gagal menyiapkan query: " . mysqli_error($conn);
+        $donor_email_escaped = mysqli_real_escape_string($conn, $donor_email);
+        $donor_email_sql = "'" . $donor_email_escaped . "'";
+    }
+    
+    // Handle message - jika kosong, gunakan NULL, jika tidak kosong, escape
+    if (empty($message)) {
+        $message_sql = "NULL";
+    } else {
+        $message_escaped = mysqli_real_escape_string($conn, $message);
+        $message_sql = "'" . $message_escaped . "'";
+    }
+    
+    // Query INSERT dengan NULL handling yang eksplisit
+    $insert_query = "INSERT INTO donations (
+        campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, 
+        payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, 
+        payment_url, qr_url, is_anonymous, message, expired_at, paid_at
+    ) VALUES (
+        $campaign_id_escaped,
+        '$donor_name_escaped',
+        $donor_email_sql,
+        '$donor_phone_escaped',
+        $amount_escaped,
+        $fee_total_escaped,
+        $total_amount_escaped,
+        '$payment_method_escaped',
+        '$payment_channel_escaped',
+        NULL,
+        '$merchant_ref_escaped',
+        '$status_escaped',
+        NULL,
+        NULL,
+        $is_anonymous_escaped,
+        $message_sql,
+        NULL,
+        NOW()
+    )";
+    
+    // Debug: Log query untuk troubleshooting
+    error_log("Insert Donation Query: " . $insert_query);
+    error_log("Status: " . $status . " | Message: " . ($message ? $message : 'NULL'));
+    
+    if (mysqli_query($conn, $insert_query)) {
+        // Update donasi_terkumpul di tabel campaigns
+        $update_campaign = mysqli_query($conn, "UPDATE campaigns SET donasi_terkumpul = donasi_terkumpul + $amount_escaped WHERE id = $campaign_id_escaped");
+        
+        if ($update_campaign) {
+            $_SESSION['success'] = "Donasi offline berhasil ditambahkan! Donatur: " . htmlspecialchars($donor_name) . " - Jumlah: " . rupiah($amount) . " - Status: PAID";
+        } else {
+            $_SESSION['error'] = "Donasi berhasil disimpan, namun gagal update total kampanye: " . mysqli_error($conn);
+        }
+    } else {
+        $error_msg = mysqli_error($conn);
+        error_log("Insert Donation Error: " . $error_msg);
+        $_SESSION['error'] = "Gagal menyimpan donasi: " . $error_msg;
     }
 
     header("Location: partner_dashboard.php");
