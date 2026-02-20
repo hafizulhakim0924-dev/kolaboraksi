@@ -158,12 +158,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     }
     
     // Insert donasi
-    // Jika email kosong, set ke string kosong (akan disimpan sebagai NULL di database jika kolom bisa NULL)
-    $donor_email_final = empty($donor_email) ? '' : $donor_email;
+    // Jika email kosong, set ke NULL
+    $donor_email_final = empty($donor_email) ? null : $donor_email;
+    // Jika message kosong, set ke NULL (atau string kosong jika kolom tidak bisa NULL)
+    $message_final = empty($message) ? null : $message;
     
     $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at, paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, NULL, NULL, ?, ?, NULL, NOW())");
     
     if ($stmt) {
+        // Bind parameters - 's' untuk string bisa handle NULL
         $stmt->bind_param("isssiiisssisi", 
             $campaign_id,
             $donor_name,
@@ -177,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
             $merchant_ref,
             $status,
             $is_anonymous,
-            $message
+            $message_final
         );
 
         if ($stmt->execute()) {
@@ -669,8 +672,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_donors') {
         }
     }
     
-    // Get donations
-    $donors_stmt = $conn->prepare("SELECT id, donor_name, donor_email, donor_phone, amount, message, is_anonymous, status, created_at, paid_at FROM donations WHERE campaign_id = ? ORDER BY created_at DESC");
+    // Get donations - kelompokkan berdasarkan status (PAID dulu, lalu yang lain)
+    $donors_stmt = $conn->prepare("SELECT id, donor_name, donor_email, donor_phone, amount, message, is_anonymous, status, created_at, paid_at FROM donations WHERE campaign_id = ? ORDER BY FIELD(status, 'PAID') DESC, created_at DESC");
     
     if ($donors_stmt) {
         $donors_stmt->bind_param("i", $campaign_id);
@@ -678,6 +681,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_donors') {
         $donors_result = $donors_stmt->get_result();
         
         $donors = [];
+        $donors_paid = [];
+        $donors_unpaid = [];
         $total_donors = 0;
         $total_amount = 0;
         $paid_amount = 0;
@@ -688,18 +693,28 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_donors') {
             $total_amount += intval($row['amount']);
             if ($row['status'] === 'PAID') {
                 $paid_amount += intval($row['amount']);
+                $donors_paid[] = $row;
+            } else {
+                $donors_unpaid[] = $row;
             }
         }
+        
+        // Reorder: PAID first, then UNPAID
+        $donors = array_merge($donors_paid, $donors_unpaid);
         
         $donors_stmt->close();
         
         echo json_encode([
             'success' => true,
             'donors' => $donors,
+            'donors_paid' => $donors_paid,
+            'donors_unpaid' => $donors_unpaid,
             'summary' => [
                 'total_donors' => $total_donors,
                 'total_amount' => $total_amount,
-                'paid_amount' => $paid_amount
+                'paid_amount' => $paid_amount,
+                'paid_count' => count($donors_paid),
+                'unpaid_count' => count($donors_unpaid)
             ]
         ]);
     } else {
@@ -1236,6 +1251,23 @@ button[type="submit"]:hover {
     color: #17a697;
 }
 
+.donor-group-header {
+    margin: 30px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.donor-group-header:first-of-type {
+    margin-top: 0;
+}
+
+.donor-group-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
 .loading-donors {
     text-align: center;
     padding: 40px;
@@ -1579,7 +1611,7 @@ function showDonors(campaignId, campaignTitle) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                renderDonorsTable(data.donors, data.summary);
+                renderDonorsTable(data.donors, data.summary, data.donors_paid || [], data.donors_unpaid || []);
             } else {
                 modalBody.innerHTML = '<div class="alert error">' + (data.message || 'Gagal memuat data donatur') + '</div>';
             }
@@ -1590,7 +1622,7 @@ function showDonors(campaignId, campaignTitle) {
         });
 }
 
-function renderDonorsTable(donors, summary) {
+function renderDonorsTable(donors, summary, donorsPaid, donorsUnpaid) {
     const modalBody = document.getElementById('donorModalBody');
     
     if (!donors || donors.length === 0) {
@@ -1604,20 +1636,8 @@ function renderDonorsTable(donors, summary) {
     html += '<div class="donor-summary-item"><div class="donor-summary-label">Donasi Terbayar</div><div class="donor-summary-value">' + formatRupiah(summary.paid_amount) + '</div></div>';
     html += '</div>';
     
-    html += '<table class="donors-table">';
-    html += '<thead><tr>';
-    html += '<th style="width: 40px;">No</th>';
-    html += '<th>Nama Donatur</th>';
-    html += '<th>Email</th>';
-    html += '<th>WhatsApp</th>';
-    html += '<th style="text-align: right;">Jumlah Donasi</th>';
-    html += '<th>Pesan & Doa</th>';
-    html += '<th>Tanggal</th>';
-    html += '<th>Status</th>';
-    html += '</tr></thead>';
-    html += '<tbody>';
-    
-    donors.forEach((donor, index) => {
+    // Fungsi untuk render baris tabel
+    function renderDonorRow(donor, index) {
         const donorName = donor.is_anonymous == 1 ? '<span class="donor-anonymous">Donatur Anonim</span>' : '<span class="donor-name">' + escapeHtml(donor.donor_name) + '</span>';
         const donorEmail = donor.donor_email ? escapeHtml(donor.donor_email) : '<span style="color: #999;">-</span>';
         // Format nomor WhatsApp: jika dimulai dengan 62, ubah ke 0
@@ -1630,19 +1650,64 @@ function renderDonorsTable(donors, summary) {
         const donorStatus = donor.status === 'PAID' ? '<span class="donor-status paid">Lunas</span>' : '<span class="donor-status unpaid">Belum Lunas</span>';
         const donorAmount = formatRupiah(donor.amount);
         
-        html += '<tr>';
-        html += '<td>' + (index + 1) + '</td>';
-        html += '<td>' + donorName + '</td>';
-        html += '<td>' + donorEmail + '</td>';
-        html += '<td>' + donorPhone + '</td>';
-        html += '<td style="text-align: right;"><span class="donor-amount">' + donorAmount + '</span></td>';
-        html += '<td>' + donorMessage + '</td>';
-        html += '<td><span class="donor-date">' + donorDate + '</span></td>';
-        html += '<td>' + donorStatus + '</td>';
-        html += '</tr>';
-    });
+        let row = '<tr>';
+        row += '<td>' + (index + 1) + '</td>';
+        row += '<td>' + donorName + '</td>';
+        row += '<td>' + donorEmail + '</td>';
+        row += '<td>' + donorPhone + '</td>';
+        row += '<td style="text-align: right;"><span class="donor-amount">' + donorAmount + '</span></td>';
+        row += '<td>' + donorMessage + '</td>';
+        row += '<td><span class="donor-date">' + donorDate + '</span></td>';
+        row += '<td>' + donorStatus + '</td>';
+        row += '</tr>';
+        return row;
+    }
     
-    html += '</tbody></table>';
+    // Tabel Donatur Lunas
+    if (donorsPaid && donorsPaid.length > 0) {
+        html += '<div class="donor-group-header"><h3>✅ Donatur Lunas (' + summary.paid_count + ')</h3></div>';
+        html += '<table class="donors-table">';
+        html += '<thead><tr>';
+        html += '<th style="width: 40px;">No</th>';
+        html += '<th>Nama Donatur</th>';
+        html += '<th>Email</th>';
+        html += '<th>WhatsApp</th>';
+        html += '<th style="text-align: right;">Jumlah Donasi</th>';
+        html += '<th>Pesan & Doa</th>';
+        html += '<th>Tanggal</th>';
+        html += '<th>Status</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        donorsPaid.forEach((donor, index) => {
+            html += renderDonorRow(donor, index + 1);
+        });
+        
+        html += '</tbody></table>';
+    }
+    
+    // Tabel Donatur Belum Lunas
+    if (donorsUnpaid && donorsUnpaid.length > 0) {
+        html += '<div class="donor-group-header"><h3>⏳ Donatur Belum Lunas (' + summary.unpaid_count + ')</h3></div>';
+        html += '<table class="donors-table">';
+        html += '<thead><tr>';
+        html += '<th style="width: 40px;">No</th>';
+        html += '<th>Nama Donatur</th>';
+        html += '<th>Email</th>';
+        html += '<th>WhatsApp</th>';
+        html += '<th style="text-align: right;">Jumlah Donasi</th>';
+        html += '<th>Pesan & Doa</th>';
+        html += '<th>Tanggal</th>';
+        html += '<th>Status</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        donorsUnpaid.forEach((donor, index) => {
+            html += renderDonorRow(donor, index + 1);
+        });
+        
+        html += '</tbody></table>';
+    }
     
     modalBody.innerHTML = html;
 }
