@@ -165,11 +165,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     $amount_escaped = intval($amount);
     $fee_total_escaped = 0;
     $total_amount_escaped = $amount_escaped;
-    $payment_method_escaped = mysqli_real_escape_string($conn, 'OFFLINE');
-    $payment_channel_escaped = mysqli_real_escape_string($conn, 'Donasi Offline');
-    $merchant_ref_escaped = mysqli_real_escape_string($conn, 'OFF' . time() . rand(1000, 9999));
-    $status_escaped = mysqli_real_escape_string($conn, $status);
+    $payment_method_escaped = mysqli_real_escape_string($conn, $payment_method);
+    $payment_channel_escaped = mysqli_real_escape_string($conn, $payment_channel);
+    $merchant_ref_escaped = mysqli_real_escape_string($conn, $merchant_ref);
     $is_anonymous_escaped = intval($is_anonymous);
+    
+    // Status adalah enum, tidak perlu di-escape, langsung gunakan 'PAID'
+    $status_sql = "'PAID'";
     
     // Handle email - jika kosong, gunakan NULL, jika tidak kosong, escape
     if (empty($donor_email)) {
@@ -179,19 +181,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         $donor_email_sql = "'" . $donor_email_escaped . "'";
     }
     
-    // Handle message - jika kosong, gunakan NULL, jika tidak kosong, escape
+    // Handle message - PASTIKAN message disimpan
+    // Jika kosong, simpan sebagai NULL, jika ada isi, simpan dengan escape yang benar
     if (empty($message)) {
         $message_sql = "NULL";
+        $message_debug = "EMPTY/NULL";
     } else {
+        // Escape message dengan benar untuk mencegah SQL injection
+        // mysqli_real_escape_string akan handle newline, quotes, dll dengan benar
         $message_escaped = mysqli_real_escape_string($conn, $message);
         $message_sql = "'" . $message_escaped . "'";
+        $message_debug = $message; // Untuk logging, gunakan original
     }
     
     // Query INSERT dengan NULL handling yang eksplisit
+    // Pastikan status = 'PAID' dan paid_at = NOW()
+    // Urutan kolom harus sesuai dengan struktur tabel
     $insert_query = "INSERT INTO donations (
-        campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, 
-        payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, 
-        payment_url, qr_url, is_anonymous, message, expired_at, paid_at
+        campaign_id, 
+        donor_name, 
+        donor_email, 
+        donor_phone, 
+        amount, 
+        fee_total, 
+        total_amount, 
+        payment_method, 
+        payment_channel, 
+        tripay_reference, 
+        tripay_merchant_ref, 
+        status, 
+        payment_url, 
+        qr_url, 
+        is_anonymous, 
+        message, 
+        expired_at, 
+        paid_at
     ) VALUES (
         $campaign_id_escaped,
         '$donor_name_escaped',
@@ -204,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
         '$payment_channel_escaped',
         NULL,
         '$merchant_ref_escaped',
-        '$status_escaped',
+        $status_sql,
         NULL,
         NULL,
         $is_anonymous_escaped,
@@ -214,10 +238,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     )";
     
     // Debug: Log query untuk troubleshooting
-    error_log("Insert Donation Query: " . $insert_query);
-    error_log("Status: " . $status . " | Message: " . ($message ? $message : 'NULL'));
+    error_log("=== OFFLINE DONATION INSERT ===");
+    error_log("Campaign ID: " . $campaign_id);
+    error_log("Donor Name: " . $donor_name);
+    error_log("Status: " . $status . " (should be PAID)");
+    error_log("Message (raw from POST): " . ($message ? substr($message, 0, 100) : 'EMPTY'));
+    error_log("Message (SQL value): " . $message_sql);
+    error_log("Full Query: " . $insert_query);
     
     if (mysqli_query($conn, $insert_query)) {
+        $insert_id = mysqli_insert_id($conn);
+        
+        // Verifikasi data yang baru saja diinsert
+        $verify_query = "SELECT id, status, message, paid_at FROM donations WHERE id = $insert_id";
+        $verify_result = mysqli_query($conn, $verify_query);
+        if ($verify_result && $row = mysqli_fetch_assoc($verify_result)) {
+            error_log("Verification - ID: " . $row['id'] . " | Status: " . $row['status'] . " | Message: " . ($row['message'] ? $row['message'] : 'NULL') . " | Paid At: " . ($row['paid_at'] ? $row['paid_at'] : 'NULL'));
+            
+            // Jika status bukan PAID, update manual
+            if ($row['status'] !== 'PAID') {
+                error_log("WARNING: Status is not PAID! Updating manually...");
+                mysqli_query($conn, "UPDATE donations SET status = 'PAID', paid_at = NOW() WHERE id = $insert_id");
+            }
+        }
+        
         // Update donasi_terkumpul di tabel campaigns
         $update_campaign = mysqli_query($conn, "UPDATE campaigns SET donasi_terkumpul = donasi_terkumpul + $amount_escaped WHERE id = $campaign_id_escaped");
         
@@ -229,6 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_type']) && $_POS
     } else {
         $error_msg = mysqli_error($conn);
         error_log("Insert Donation Error: " . $error_msg);
+        error_log("Failed Query: " . $insert_query);
         $_SESSION['error'] = "Gagal menyimpan donasi: " . $error_msg;
     }
 
