@@ -117,8 +117,8 @@ $sql = "SELECT id, title, emoji, image, organizer, target_terkumpul, donasi_terk
                 $conn->query("ALTER TABLE banners ADD COLUMN `link` varchar(255) DEFAULT NULL AFTER `image`");
             }
             
-            // Tabel ada, ambil banner aktif (urutkan berdasarkan created_at terbaru atau id terbaru)
-            $bannerQuery = "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners WHERE (image IS NOT NULL AND image != '') ORDER BY created_at DESC, id DESC LIMIT 1";
+            // Tabel ada, ambil 4 banner aktif (urutkan berdasarkan order, lalu created_at terbaru)
+            $bannerQuery = "SELECT id, title, subtitle, image, COALESCE(link, '#') as link, `order` FROM banners WHERE (image IS NOT NULL AND image != '') ORDER BY `order` ASC, created_at DESC, id DESC LIMIT 4";
             $bannerRes = $conn->query($bannerQuery);
             if ($bannerRes && $bannerRes->num_rows > 0) {
                 while ($row = $bannerRes->fetch_assoc()) {
@@ -210,7 +210,7 @@ $conn->close();
         }
 
 
-        /* Banner Section */
+        /* Banner Section - Slider */
         .banner-section {
             position: relative;
             overflow: hidden;
@@ -222,13 +222,35 @@ $conn->close();
             width: 100%;
         }
 
-        .banner-image-link {
-            display: block;
+        .banner-slider {
+            position: relative;
             width: 100%;
+            height: 180px;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .banner-slides {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .banner-slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .banner-image-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
         }
 
         .banner-image-link:active {
@@ -237,14 +259,14 @@ $conn->close();
 
         .banner-image {
             width: 100%;
-            height: 180px;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
 
         .banner-image-placeholder {
             width: 100%;
-            height: 180px;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -253,8 +275,33 @@ $conn->close();
             color: white;
         }
 
+        .banner-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .banner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .banner-dot.active {
+            background: #fff;
+            width: 24px;
+            border-radius: 4px;
+        }
+
         @media (min-width: 768px) {
-            .banner-image, .banner-image-placeholder {
+            .banner-slider {
                 height: 220px;
             }
         }
@@ -1262,9 +1309,44 @@ $conn->close();
                     $bannerEmoji = !empty($banner['emoji']) ? trim($banner['emoji']) : '💝';
                 }
                 
-                // Tampilkan banner jika ada data
-                if ($banner):
+                // Tampilkan banner slider jika ada data
+                if (!empty($data['banners']) && count($data['banners']) > 0):
                 ?>
+                <div class="banner-section">
+                    <div class="banner-slider" id="bannerSlider">
+                        <div class="banner-slides" id="bannerSlides">
+                            <?php foreach ($data['banners'] as $index => $bannerItem): 
+                                $bannerItemImage = !empty($bannerItem['image']) ? trim($bannerItem['image']) : '';
+                                $bannerItemTitle = !empty($bannerItem['title']) ? trim($bannerItem['title']) : 'KolaborAksi';
+                                $bannerItemLink = !empty($bannerItem['link']) ? trim($bannerItem['link']) : '#';
+                            ?>
+                            <div class="banner-slide">
+                                <a href="<?= htmlspecialchars($bannerItemLink) ?>" class="banner-image-link" target="_self">
+                                    <?php if (!empty($bannerItemImage)): ?>
+                                        <img src="<?= htmlspecialchars($bannerItemImage) ?>" alt="<?= htmlspecialchars($bannerItemTitle) ?>" class="banner-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="banner-image-placeholder" style="display: none;">
+                                            💝
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="banner-image-placeholder">
+                                            💝
+                                        </div>
+                                    <?php endif; ?>
+                                </a>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if (count($data['banners']) > 1): ?>
+                        <div class="banner-dots" id="bannerDots">
+                            <?php for ($i = 0; $i < count($data['banners']); $i++): ?>
+                                <span class="banner-dot <?= $i === 0 ? 'active' : '' ?>" data-slide="<?= $i ?>"></span>
+                            <?php endfor; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php elseif ($banner): ?>
+                <!-- Fallback: Single banner jika tidak ada banner dari tabel -->
                 <div class="banner-section">
                     <a href="<?= htmlspecialchars($bannerLink) ?>" class="banner-image-link" target="_self">
                         <?php if (!empty($bannerImage)): ?>
@@ -1983,6 +2065,81 @@ function closeCategoryFrame() {
             }
         });
 
+        // ==================== BANNER SLIDER ====================
+        let currentSlide = 0;
+        let bannerSlideInterval = null;
+        const slideInterval = 4000; // 4 detik
+
+        function initBannerSlider() {
+            const slider = document.getElementById('bannerSlider');
+            const slides = document.getElementById('bannerSlides');
+            const dots = document.getElementById('bannerDots');
+            
+            if (!slider || !slides) return;
+            
+            const slideCount = slides.children.length;
+            if (slideCount <= 1) return; // Tidak perlu slider jika hanya 1 slide
+            
+            // Setup dots click
+            if (dots) {
+                const dotElements = dots.querySelectorAll('.banner-dot');
+                dotElements.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        goToSlide(index);
+                    });
+                });
+            }
+            
+            // Start auto-slide
+            startBannerAutoSlide();
+            
+            // Pause on hover
+            slider.addEventListener('mouseenter', stopBannerAutoSlide);
+            slider.addEventListener('mouseleave', startBannerAutoSlide);
+        }
+
+        function goToSlide(index) {
+            const slides = document.getElementById('bannerSlides');
+            const dots = document.getElementById('bannerDots');
+            
+            if (!slides) return;
+            
+            const slideCount = slides.children.length;
+            if (index < 0) index = slideCount - 1;
+            if (index >= slideCount) index = 0;
+            
+            currentSlide = index;
+            slides.style.transform = `translateX(-${index * 100}%)`;
+            
+            // Update dots
+            if (dots) {
+                const dotElements = dots.querySelectorAll('.banner-dot');
+                dotElements.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+        }
+
+        function nextSlide() {
+            const slides = document.getElementById('bannerSlides');
+            if (!slides) return;
+            
+            const slideCount = slides.children.length;
+            goToSlide((currentSlide + 1) % slideCount);
+        }
+
+        function startBannerAutoSlide() {
+            stopBannerAutoSlide(); // Clear existing interval
+            bannerSlideInterval = setInterval(nextSlide, slideInterval);
+        }
+
+        function stopBannerAutoSlide() {
+            if (bannerSlideInterval) {
+                clearInterval(bannerSlideInterval);
+                bannerSlideInterval = null;
+            }
+        }
+
         // ==================== BANNER POPUP ====================
         function showBannerPopup() {
             const popup = document.getElementById('bannerPopupModal');
@@ -2002,6 +2159,9 @@ function closeCategoryFrame() {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ KolaborAksi loaded');
             loadPageData();
+            
+            // Initialize banner slider
+            setTimeout(initBannerSlider, 500);
             
             // Show banner popup after 5 seconds
             setTimeout(function() {
