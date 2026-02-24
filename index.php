@@ -404,6 +404,14 @@ $conn->close();
             line-height: 1;
         }
 
+        .menu-icon-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            margin: 0 auto 4px;
+            display: block;
+        }
+
         .menu-name {
             font-size: 10px;
             font-weight: 600;
@@ -420,6 +428,11 @@ $conn->close();
             }
             .menu-icon {
                 font-size: 28px;
+                margin-bottom: 6px;
+            }
+            .menu-icon-img {
+                width: 36px;
+                height: 36px;
                 margin-bottom: 6px;
             }
             .menu-name {
@@ -1397,6 +1410,22 @@ $conn->close();
                         <a href="kampanye_cepat.php" class="menu-item">
                             <div class="menu-icon">⚡</div>
                             <div class="menu-name">Kampanye Cepat</div>
+                        </a>
+                        <a href="#" class="menu-item" onclick="event.preventDefault(); openZakatCalculator();">
+                            <div class="menu-icon"><?php if (file_exists('assets/menu/zakat.png')) { ?><img src="assets/menu/zakat.png" alt="" class="menu-icon-img"><?php } else { ?>🕌<?php } ?></div>
+                            <div class="menu-name">Zakat</div>
+                        </a>
+                        <a href="pencariankampanye.php?kategori=infak" class="menu-item">
+                            <div class="menu-icon"><?php if (file_exists('assets/menu/infak.png')) { ?><img src="assets/menu/infak.png" alt="" class="menu-icon-img"><?php } else { ?>🌙<?php } ?></div>
+                            <div class="menu-name">Infak</div>
+                        </a>
+                        <a href="pencariankampanye.php?kategori=sedekah" class="menu-item">
+                            <div class="menu-icon"><?php if (file_exists('assets/menu/sedekah.png')) { ?><img src="assets/menu/sedekah.png" alt="" class="menu-icon-img"><?php } else { ?>🤲<?php } ?></div>
+                            <div class="menu-name">Sedekah</div>
+                        </a>
+                        <a href="pencariankampanye.php?kategori=berbagi" class="menu-item">
+                            <div class="menu-icon"><?php if (file_exists('assets/menu/berbagi.png')) { ?><img src="assets/menu/berbagi.png" alt="" class="menu-icon-img"><?php } else { ?>❤️<?php } ?></div>
+                            <div class="menu-name">Berbagi</div>
                         </a>
                     </div>
                 </div>
