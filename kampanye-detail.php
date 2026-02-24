@@ -155,12 +155,13 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
         $signature_string = TRIPAY_MERCHANT_CODE . $merchant_ref . $amount;
         $signature = hash_hmac('sha256', $signature_string, TRIPAY_PRIVATE_KEY);
         
+    $customer_email = !empty(trim($_POST['donor_email'] ?? '')) ? trim($_POST['donor_email']) : 'donasi@kolaboraksi.id';
     $data = [
         'method' => $_POST['payment_method'],
         'merchant_ref' => $merchant_ref,
         'amount' => $amount,
         'customer_name' => trim($_POST['donor_name']),
-        'customer_email' => trim($_POST['donor_email']),
+        'customer_email' => $customer_email,
         'customer_phone' => $phone,
         'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
         'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
@@ -310,11 +311,11 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
             $message_raw = isset($_POST['message']) ? $_POST['message'] : '';
             $message = !empty($message_raw) ? mysqli_real_escape_string($conn, $message_raw) : '';
+            $donor_sapaan = isset($_POST['donor_sapaan']) ? mysqli_real_escape_string($conn, trim($_POST['donor_sapaan'])) : '';
+            $donor_email_save = !empty(trim($_POST['donor_email'] ?? '')) ? trim($_POST['donor_email']) : '';
             
-            // Prepare SQL statement
-            // Kolom: campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at
-            // Total: 17 kolom, tapi status hardcoded 'UNPAID', jadi 16 placeholder
-            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, FROM_UNIXTIME(?))");
+            // Prepare SQL statement (donor_sapaan, donor_email nullable)
+            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_sapaan, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, ?, FROM_UNIXTIME(?))");
         
             if (!$stmt) {
                 throw new Exception("Failed to prepare statement: " . $conn->error);
@@ -326,26 +327,27 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $payment_name = $tx['payment_name'] ?? $_POST['payment_method'];
             $expired_time = isset($tx['expired_time']) ? intval($tx['expired_time']) : (time() + 86400);
             
-            // Bind 16 parameters: i, s, s, s, i, i, i, s, s, s, s, s, s, s, i, s, i
+            // Bind 18 params: campaign_id, donor_name, donor_sapaan, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, payment_url, qr_url, is_anonymous, message, expired_time
         $stmt->bind_param(
- "isssiiissssssisi",
+                "issssiiissssssisi",
                 $_POST['campaign_id'],     // 1. i - campaign_id
                 $_POST['donor_name'],      // 2. s - donor_name
-                $_POST['donor_email'],     // 3. s - donor_email
-                $phone,                    // 4. s - donor_phone
-                $amount,                   // 5. i - amount
-                $total_fee,                // 6. i - fee_total
-                $total_amount,             // 7. i - total_amount
-                $_POST['payment_method'],  // 8. s - payment_method
-                $payment_name,            // 9. s - payment_channel
-                $tx['reference'],         // 10. s - tripay_reference
-                $merchant_ref,             // 11. s - tripay_merchant_ref
-                $checkout_url,             // 12. s - payment_url
-                $qr_url,                   // 13. s - qr_url
-                $is_anonymous,             // 14. i - is_anonymous
-                $message,                  // 15. s - message
-                $expired_time              // 16. i - expired_at (untuk FROM_UNIXTIME)
-);
+                $donor_sapaan,             // 3. s - donor_sapaan
+                $donor_email_save,         // 4. s - donor_email (nullable)
+                $phone,                    // 5. s - donor_phone
+                $amount,                   // 6. i - amount
+                $total_fee,                // 7. i - fee_total
+                $total_amount,             // 8. i - total_amount
+                $_POST['payment_method'],  // 9. s - payment_method
+                $payment_name,             // 10. s - payment_channel
+                $tx['reference'],          // 11. s - tripay_reference
+                $merchant_ref,             // 12. s - tripay_merchant_ref
+                $checkout_url,             // 13. s - payment_url
+                $qr_url,                   // 14. s - qr_url
+                $is_anonymous,             // 15. i - is_anonymous
+                $message,                  // 16. s - message
+                $expired_time              // 17. i - expired_at
+        );
 
             if ($stmt->execute()) {
         $stmt->close();
@@ -714,26 +716,30 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,.6)}
 .modal.show{display:flex;align-items:center;justify-content:center}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal-content{background:#fff;margin:20px;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-header{background:linear-gradient(135deg,#17a697,#139989);color:#fff;padding:24px 28px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center}
-.modal-title{font-size:19px;font-weight:700}
-.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;transition:all .2s}
+.modal-content{background:#fff;margin:20px;border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{background:linear-gradient(135deg,#17a697,#139989);color:#fff;padding:16px 20px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
 .modal-close:hover{background:rgba(255,255,255,.25)}
-.modal-body{padding:28px}
-.form-group{margin-bottom:20px}
-.form-group label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:10px}
+.modal-body{padding:16px 20px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
 .form-group label .required{color:#EF4444}
-.form-group input,.form-group textarea{width:100%;padding:14px 16px;border:1.5px solid #E8EBED;border-radius:10px;font-size:14px;font-family:Poppins,sans-serif;transition:all .2s;background:#F8FAFB}
-.form-group input:focus,.form-group textarea:focus{outline:none;border-color:#17a697;background:#fff;box-shadow:0 0 0 4px rgba(23,166,151,.08)}
-.form-group textarea{resize:vertical;min-height:90px}
-.quick-amount{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.quick-amount-btn{padding:12px;border:1.5px solid #E8EBED;background:#fff;border-radius:10px;font-size:13px;font-weight:600;color:#4B5563;cursor:pointer;transition:all .2s}
-.quick-amount-btn:hover{border-color:#17a697;background:#F0FAF8;color:#17a697}
-.quick-amount-btn.active{background:#17a697;border-color:#17a697;color:#fff}
-.checkbox-group{display:flex;align-items:center;gap:10px;margin-top:12px;padding:14px;background:#F8FAFB;border-radius:10px}
-.checkbox-group input[type=checkbox]{width:20px;height:20px;accent-color:#17a697;cursor:pointer}
-.checkbox-group label{margin:0!important;font-size:13px;font-weight:500;color:#4B5563;cursor:pointer}
-.payment-methods{display:grid;gap:10px;margin-top:12px;max-height:320px;overflow-y:auto;padding-right:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;border:1.5px solid #E8EBED;border-radius:8px;font-size:13px;font-family:Poppins,sans-serif;transition:all .2s;background:#F8FAFB}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:#17a697;background:#fff;box-shadow:0 0 0 3px rgba(23,166,151,.08)}
+.form-group textarea{resize:vertical;min-height:56px}
+.form-row-inline{display:flex;gap:10px;margin-bottom:12px}
+.form-row-inline .form-group{margin-bottom:0}
+.form-group-small{flex:0 0 90px}
+.form-group-flex{flex:1;min-width:0}
+.payment-toggle-wrap{margin-bottom:12px}
+.payment-toggle-btn{width:100%;padding:12px 16px;border:1.5px dashed #17a697;background:#F0FAF8;color:#17a697;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.payment-toggle-btn:hover{background:#E0F5F2;border-style:solid}
+.payment-channels-wrap{margin-top:10px;padding-top:10px;border-top:1px solid #E8EBED}
+.checkbox-group{display:flex;align-items:center;gap:8px;margin:10px 0;padding:10px;background:#F8FAFB;border-radius:8px}
+.checkbox-group input[type=checkbox]{width:18px;height:18px;accent-color:#17a697;cursor:pointer}
+.checkbox-group label{margin:0!important;font-size:12px;font-weight:500;color:#4B5563;cursor:pointer}
+.payment-methods{display:grid;gap:8px;margin-top:8px;max-height:200px;overflow-y:auto;padding-right:4px}
 .payment-methods::-webkit-scrollbar{width:5px}
 .payment-methods::-webkit-scrollbar-track{background:#F0F2F4;border-radius:10px}
 .payment-methods::-webkit-scrollbar-thumb{background:#17a697;border-radius:10px}
@@ -746,10 +752,10 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .payment-method-name{font-size:14px;font-weight:600;margin-bottom:4px}
 .payment-method-fee{font-size:11px;color:#6B7280}
 .payment-method-logo{width:56px;height:28px;object-fit:contain}
-.summary-box{background:#F8FAFB;padding:20px;border-radius:12px;margin:24px 0;border:1.5px solid #E8EBED}
-.summary-row{display:flex;justify-content:space-between;margin-bottom:12px;font-size:14px;color:#4B5563}
-.summary-row.total{padding-top:12px;border-top:1.5px solid #E8EBED;font-weight:700;font-size:17px;color:#17a697;margin-top:12px}
-.submit-btn{width:100%;background:linear-gradient(135deg,#17a697,#139989);color:#fff;border:none;padding:16px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(23,166,151,.25)}
+.summary-box{background:#F8FAFB;padding:12px 14px;border-radius:10px;margin:12px 0;border:1.5px solid #E8EBED}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:#4B5563}
+.summary-row.total{padding-top:8px;border-top:1.5px solid #E8EBED;font-weight:700;font-size:15px;color:#17a697;margin-top:6px}
+.submit-btn{width:100%;background:linear-gradient(135deg,#17a697,#139989);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(23,166,151,.25)}
 .submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,166,151,.35)}
 .submit-btn:disabled{background:#D1D5DB;cursor:not-allowed;box-shadow:none}
 .donations-list{margin-top:20px}
@@ -805,8 +811,7 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .stat-value{font-size:13px}
 .stats{gap:10px}
 .modal-content{margin:12px;max-height:95vh}
-.modal-body{padding:24px 20px}
-.quick-amount{grid-template-columns:repeat(2,1fr)}
+.modal-body{padding:14px 16px}
 .share-buttons{gap:10px}
 .share-btn{font-size:12px;padding:12px}
 .donate-button{padding:14px 16px;max-width:100%}
@@ -974,13 +979,22 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 <div class="modal-body">
 <form id="donationForm">
 <input type="hidden" name="campaign_id" value="<?= $campaign_id ?>">
-<div class="form-group">
-<label>Nama Lengkap <span class="required">*</span></label>
-<input type="text" name="donor_name" required placeholder="Masukkan nama lengkap">
+<input type="hidden" name="donor_email" value="">
+<div class="form-row-inline">
+<div class="form-group form-group-small">
+<label>Sapaan</label>
+<select name="donor_sapaan" class="form-select">
+<option value="">-- Pilih --</option>
+<option value="Kak">Kak</option>
+<option value="Bg">Bg</option>
+<option value="Mas">Mas</option>
+<option value="Mbak">Mbak</option>
+</select>
 </div>
-<div class="form-group">
-<label>Email <span class="required">*</span></label>
-<input type="email" name="donor_email" required placeholder="email@example.com">
+<div class="form-group form-group-flex">
+<label>Nama Lengkap <span class="required">*</span></label>
+<input type="text" name="donor_name" required placeholder="Nama lengkap">
+</div>
 </div>
 <div class="form-group">
 <label>Nomor WhatsApp <span class="required">*</span></label>
@@ -990,26 +1004,23 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 <input type="checkbox" name="is_anonymous" id="is_anonymous" value="1">
 <label for="is_anonymous">Sembunyikan nama saya (Anonim)</label>
 </div>
-<div class="form-group" style="margin-top:20px">
+<div class="form-group">
 <label>Jumlah Donasi (Rp) <span class="required">*</span></label>
-<input type="number" name="amount" id="amount" required min="10000" placeholder="Minimal Rp 10.000" oninput="updateSummary()">
-<div class="quick-amount">
-<button type="button" class="quick-amount-btn" onclick="setAmount(20000)">Rp 20K</button>
-<button type="button" class="quick-amount-btn" onclick="setAmount(50000)">Rp 50K</button>
-<button type="button" class="quick-amount-btn" onclick="setAmount(100000)">Rp 100K</button>
-<button type="button" class="quick-amount-btn" onclick="setAmount(200000)">Rp 200K</button>
-<button type="button" class="quick-amount-btn" onclick="setAmount(500000)">Rp 500K</button>
-<button type="button" class="quick-amount-btn" onclick="setAmount(1000000)">Rp 1Jt</button>
-</div>
+<input type="number" name="amount" id="amount" required min="10000" placeholder="Min. Rp 10.000" oninput="updateSummary()">
 </div>
 <div class="form-group">
 <label>Pesan & Doa (opsional)</label>
-<textarea name="message" placeholder="Semoga bermanfaat..."></textarea>
+<textarea name="message" placeholder="Semoga bermanfaat..." rows="2"></textarea>
 </div>
+<div class="payment-toggle-wrap">
+<button type="button" class="payment-toggle-btn" id="paymentToggleBtn" onclick="togglePaymentChannels()">
+<i class="fas fa-credit-card"></i> Pilih Metode Pembayaran
+</button>
+<div id="paymentChannelsWrap" class="payment-channels-wrap" style="display:none">
 <div class="form-group">
 <label>Metode Pembayaran <span class="required">*</span></label>
-<div id="paymentChannelsContainer">
-<div class="loading"><div class="spinner"></div><p>Memuat metode pembayaran...</p></div>
+<div id="paymentChannelsContainer"></div>
+</div>
 </div>
 </div>
 <div class="summary-box">
@@ -1037,12 +1048,24 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 const CAMPAIGN_ID=<?= $campaign_id ?>;
 let paymentChannels=[],currentTransaction=null;
 
-function openDonateModal(){document.getElementById('donateModal').classList.add('show');loadPaymentChannels()}
-function closeDonateModal(){document.getElementById('donateModal').classList.remove('show')}
+function openDonateModal(){
+document.getElementById('donateModal').classList.add('show');
+document.getElementById('paymentChannelsWrap').style.display='none';
+document.getElementById('paymentChannelsContainer').innerHTML='';
+}
+function closeDonateModal(){document.getElementById('donateModal').classList.remove('show');window._paymentChannelsLoaded=false}
+function togglePaymentChannels(){
+var wrap=document.getElementById('paymentChannelsWrap');
+if(wrap.style.display==='none'){
+wrap.style.display='block';
+if(!window._paymentChannelsLoaded){loadPaymentChannels();window._paymentChannelsLoaded=true;}
+}else{wrap.style.display='none'}
+}
 function closePaymentModal(){document.getElementById('paymentModal').classList.remove('show');if(currentTransaction)location.reload()}
 
 function loadPaymentChannels(){
 const c=document.getElementById('paymentChannelsContainer');
+c.innerHTML='<div class="loading"><div class="spinner"></div><p>Memuat metode pembayaran...</p></div>';
 fetch('?ajax=get_channels')
 .then(r=>r.json())
 .then(data=>{
@@ -1080,12 +1103,6 @@ updateSummary()
 })
 }
 
-function setAmount(amt){
-document.getElementById('amount').value=amt;
-document.querySelectorAll('.quick-amount-btn').forEach(b=>b.classList.remove('active'));
-event.target.classList.add('active');
-updateSummary()
-}
 
 function updateSummary(){
 const amt=parseInt(document.getElementById('amount').value)||0;
