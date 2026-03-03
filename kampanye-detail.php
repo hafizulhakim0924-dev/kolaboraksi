@@ -747,6 +747,7 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .payment-method{border:1.5px solid #E8EBED;border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;background:#fff}
 .payment-method:hover{border-color:#17a697;background:#F8FAFB}
 .payment-method.active{border-color:#17a697;background:#F0FAF8;box-shadow:0 2px 8px rgba(23,166,151,.15)}
+.payment-method-pickup{border-style:dashed;background:#FDFCF8}
 .payment-method input[type=radio]{width:20px;height:20px;accent-color:#17a697}
 .payment-method-info{flex:1}
 .payment-method-name{font-size:14px;font-weight:600;margin-bottom:4px}
@@ -1046,6 +1047,7 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 
 <script>
 const CAMPAIGN_ID=<?= $campaign_id ?>;
+const CAMPAIGN_TITLE="<?= isset($campaign['title']) ? addslashes($campaign['title']) : '' ?>";
 let paymentChannels=[],currentTransaction=null;
 
 function openDonateModal(){
@@ -1091,6 +1093,16 @@ ${ch.icon_url?`<img src="${ch.icon_url}" class="payment-method-logo" alt="${ch.n
 </label>`
 })
 }
+// Layanan jemput donasi (manual via WhatsApp)
+html+=`<div class="payment-group-title">Layanan Khusus</div>`;
+html+=`<label class="payment-method payment-method-pickup" data-code="JEMPUT_DONASI">
+<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
+<div class="payment-method-info">
+<div class="payment-method-name">Jemput Donasi</div>
+<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
+</div>
+<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
+</label>`;
 html+='</div>';
 c.innerHTML=html;
 document.querySelectorAll('.payment-method').forEach(m=>{
@@ -1124,10 +1136,33 @@ document.getElementById('donationForm').addEventListener('submit',function(e){
 e.preventDefault();
 const amt=parseInt(document.getElementById('amount').value)||0;
 if(amt<10000){alert('Minimal donasi adalah Rp 10.000');return}
-if(!document.querySelector('input[name="payment_method"]:checked')){alert('Silakan pilih metode pembayaran');return}
+const sel=document.querySelector('input[name="payment_method"]:checked');
+if(!sel){alert('Silakan pilih metode pembayaran');return}
+const method=sel.value;
 const btn=document.getElementById('submitBtn');
 btn.disabled=true;
 btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+// Jika memilih jemput donasi, arahkan ke WhatsApp tanpa memproses Tripay
+if(method==='JEMPUT_DONASI'){
+const name=(document.querySelector('input[name="donor_name"]').value||'').trim();
+const phone=(document.querySelector('input[name="donor_phone"]').value||'').trim();
+const message=(document.querySelector('textarea[name="message"]').value||'').trim();
+let text='Assalamu\\'alaikum, ada donatur yang ingin dijemput donasinya.%0A%0A';
+text+=`*Nama*: ${name||'-'}%0A`;
+text+=`*No. WA Donatur*: ${phone||'-'}%0A`;
+text+=`*Kampanye*: ${CAMPAIGN_TITLE||'-'}%0A`;
+text+=`*Jumlah Donasi*: Rp ${amt.toLocaleString('id-ID')}%0A`;
+text+=`*Pesan/Doa*: ${message||'-'}%0A%0A`;
+text+='Mohon ditindaklanjuti untuk penjemputan donasi.';
+const waNumber='6282171220701';
+const waUrl=`https://wa.me/${waNumber}?text=${text}`;
+window.open(waUrl,'_blank');
+alert('Anda akan diarahkan ke WhatsApp untuk konfirmasi jemput donasi.');
+btn.disabled=false;
+btn.innerHTML='<i class="fas fa-paper-plane"></i> Lanjutkan Pembayaran';
+return;
+}
 const fd=new FormData(this);
 fd.append('ajax','process_donation');
 fetch('',{method:'POST',body:fd})

@@ -495,23 +495,23 @@ $conn->close();
 
         .section {
             background: rgba(255, 255, 255, 0.95);
-            margin: 12px 8px;
-            padding: 18px 16px;
-            border-radius: 18px;
+            margin: 8px 8px 10px;
+            padding: 12px 12px 14px;
+            border-radius: 14px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 12px rgba(23, 166, 151, 0.06);
+            box-shadow: 0 1px 6px rgba(23, 166, 151, 0.05);
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .section-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #1F1F1F;
         }
@@ -533,13 +533,13 @@ $conn->close();
         }
 
         .campaign-card-small {
-            min-width: 180px;
-            max-width: 180px;
+            min-width: 160px;
+            max-width: 160px;
             background: #FFFFFF;
-            border-radius: 14px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            transition: all 0.25s ease;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
             cursor: pointer;
             border: 1px solid #E5E7EB;
             text-decoration: none;
@@ -561,7 +561,7 @@ $conn->close();
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 36px;
+            font-size: 30px;
             overflow: hidden;
         }
 
@@ -572,13 +572,13 @@ $conn->close();
         }
 
         .campaign-content-small {
-            padding: 10px 12px 12px;
+            padding: 8px 10px 10px;
         }
 
         .campaign-title-small {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -589,9 +589,9 @@ $conn->close();
         }
 
         .campaign-organizer-small {
-            font-size: 11px;
+            font-size: 10px;
             color: #6B7280;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -599,11 +599,11 @@ $conn->close();
 
         .progress-bar-small {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background: #E5E7EB;
             border-radius: 999px;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .progress-fill {
@@ -614,7 +614,7 @@ $conn->close();
         }
 
         .campaign-stats-small {
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .stat-label-small {
@@ -634,20 +634,20 @@ $conn->close();
         .rekomendasi-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
         .rekomendasi-card {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             background: white;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
             cursor: pointer;
             border: 1px solid #E8EBED;
-            padding: 12px;
+            padding: 10px;
             text-decoration: none;
             color: inherit;
         }
@@ -657,7 +657,7 @@ $conn->close();
         }
 
         .rekomendasi-image {
-            width: 140px;
+            width: 120px;
             aspect-ratio: 16 / 9;
             flex-shrink: 0;
             border-radius: 12px;
@@ -686,9 +686,9 @@ $conn->close();
         }
 
         .rekomendasi-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -698,9 +698,9 @@ $conn->close();
         }
 
         .rekomendasi-organizer {
-            font-size: 11px;
+            font-size: 10px;
             color: #6B7280;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 4px;
