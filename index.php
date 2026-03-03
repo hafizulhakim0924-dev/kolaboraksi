@@ -533,15 +533,15 @@ $conn->close();
         }
 
         .campaign-card-small {
-            min-width: 168px;
-            max-width: 168px;
-            background: white;
-            border-radius: 16px;
+            min-width: 180px;
+            max-width: 180px;
+            background: #FFFFFF;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: all 0.25s ease;
             cursor: pointer;
-            border: 1px solid #E8EBED;
+            border: 1px solid #E5E7EB;
             text-decoration: none;
             color: inherit;
             display: block;
@@ -572,13 +572,13 @@ $conn->close();
         }
 
         .campaign-content-small {
-            padding: 12px;
+            padding: 10px 12px 12px;
         }
 
         .campaign-title-small {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -589,9 +589,9 @@ $conn->close();
         }
 
         .campaign-organizer-small {
-            font-size: 10px;
+            font-size: 11px;
             color: #6B7280;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -599,22 +599,22 @@ $conn->close();
 
         .progress-bar-small {
             width: 100%;
-            height: 4px;
-            background: #F0F2F4;
-            border-radius: 10px;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 999px;
             overflow: hidden;
             margin-bottom: 8px;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #17a697 0%, #1bc9b5 100%);
-            transition: width 0.5s ease;
-            border-radius: 10px;
+            background: #17a697;
+            transition: width 0.4s ease;
+            border-radius: 999px;
         }
 
         .campaign-stats-small {
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .stat-label-small {
@@ -714,8 +714,8 @@ $conn->close();
         .progress-bar {
             width: 100%;
             height: 6px;
-            background: #F0F2F4;
-            border-radius: 10px;
+            background: #E5E7EB;
+            border-radius: 999px;
             overflow: hidden;
             margin-bottom: 10px;
         }
@@ -1395,22 +1395,6 @@ $conn->close();
                 <!-- Menu Section -->
                 <div class="menu-section">
                     <div class="menu-grid">
-                        <a href="#latestCampaigns" class="menu-item" onclick="event.preventDefault(); document.getElementById('latestCampaigns').scrollIntoView({behavior: 'smooth', block: 'start'});">
-                            <div class="menu-icon">🔥</div>
-                            <div class="menu-name">Kampanye Terbaru</div>
-                        </a>
-                        <a href="#favoritCategories" class="menu-item" onclick="event.preventDefault(); document.getElementById('favoritCategories').scrollIntoView({behavior: 'smooth', block: 'start'});">
-                            <div class="menu-icon">⭐</div>
-                            <div class="menu-name">Kampanye Populer</div>
-                        </a>
-                        <a href="#eventRecommendations" class="menu-item" onclick="event.preventDefault(); document.getElementById('eventRecommendations').scrollIntoView({behavior: 'smooth', block: 'start'});">
-                            <div class="menu-icon">🎉</div>
-                            <div class="menu-name">Event</div>
-                        </a>
-                        <a href="kampanye_cepat.php" class="menu-item">
-                            <div class="menu-icon">⚡</div>
-                            <div class="menu-name">Kampanye Cepat</div>
-                        </a>
                         <a href="#" class="menu-item" onclick="event.preventDefault(); openZakatCalculator();">
                             <div class="menu-icon"><?php if (file_exists('assets/menu/zakat.png')) { ?><img src="assets/menu/zakat.png" alt="" class="menu-icon-img"><?php } else { ?>🕌<?php } ?></div>
                             <div class="menu-name">Zakat</div>
