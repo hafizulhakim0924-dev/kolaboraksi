@@ -1148,7 +1148,7 @@ if(method==='JEMPUT_DONASI'){
 const name=(document.querySelector('input[name="donor_name"]').value||'').trim();
 const phone=(document.querySelector('input[name="donor_phone"]').value||'').trim();
 const message=(document.querySelector('textarea[name="message"]').value||'').trim();
-let text='Assalamu\\'alaikum, ada donatur yang ingin dijemput donasinya.%0A%0A';
+let text=\"Assalamu'alaikum, ada donatur yang ingin dijemput donasinya.%0A%0A\";
 text+=`*Nama*: ${name||'-'}%0A`;
 text+=`*No. WA Donatur*: ${phone||'-'}%0A`;
 text+=`*Kampanye*: ${CAMPAIGN_TITLE||'-'}%0A`;
