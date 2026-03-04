@@ -967,7 +967,7 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 </div>
 
 <div class="donate-button">
-<button class="donate-btn" onclick="openDonateModal()"><i class="fas fa-heart"></i> Donasi Sekarang</button>
+<button class="donate-btn" onclick="if(typeof openDonateModal==='function'){openDonateModal();}else{var m=document.getElementById('donateModal');if(m){m.classList.add('show');}var w=document.getElementById('paymentChannelsWrap');if(w){w.style.display='none';}var c=document.getElementById('paymentChannelsContainer');if(c){c.innerHTML='';}window._paymentChannelsLoaded=false;}"><i class="fas fa-heart"></i> Donasi Sekarang</button>
 </div>
 </div>
 
