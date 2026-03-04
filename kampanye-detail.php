@@ -1071,9 +1071,9 @@ fetch('?ajax=get_channels')
 .then(r=>r.json())
 .then(data=>{
 if(data.success&&data.data){paymentChannels=data.data;renderPaymentChannels(paymentChannels)}
-else c.innerHTML='<div class="alert alert-error">Gagal memuat metode pembayaran</div>'
+else{renderPaymentChannels([]);}
 })
-.catch(e=>c.innerHTML='<div class="alert alert-error">Terjadi kesalahan</div>')
+.catch(e=>{console.error('loadPaymentChannels error',e);renderPaymentChannels([]);})
 }
 
 function renderPaymentChannels(channels){
