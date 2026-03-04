@@ -1012,7 +1012,17 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 </div>
 <div class="form-group">
 <label>Metode Pembayaran <span class="required">*</span></label>
-<div class="payment-methods" id="paymentChannelsContainer"></div>
+<div class="payment-methods" id="paymentChannelsContainer">
+<div class="payment-group-title">Layanan Khusus</div>
+<label class="payment-method payment-method-pickup">
+<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
+<div class="payment-method-info">
+<div class="payment-method-name">Jemput Donasi</div>
+<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
+</div>
+<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
+</label>
+</div>
 </div>
 <div class="summary-box">
 <div class="summary-row"><span>Nominal Donasi:</span><span id="summaryAmount">Rp 0</span></div>
@@ -1061,20 +1071,22 @@ if(data&&data.success&&Array.isArray(data.data)){
 paymentChannels=data.data;
 renderPaymentChannels(paymentChannels);
 }else{
-renderPaymentChannels([]);
+console.error('get_channels tidak mengembalikan data yang valid',data);
+// Biarkan fallback Jemput Donasi (HTML statis) tetap tampil
+document.getElementById('paymentChannelsContainer').innerHTML=document.getElementById('paymentChannelsContainer').innerHTML;
 }
 })
 .catch(e=>{
 console.error('loadPaymentChannels error',e);
 paymentChannelsLoaded=true;
-renderPaymentChannels([]);
+// Biarkan fallback Jemput Donasi tetap tampil
 });
 }
 
 function renderPaymentChannels(channels){
 const c=document.getElementById('paymentChannelsContainer');
 if(!c)return;
-let html='<div class="payment-methods-inner">';
+let html='';
 
 // Metode Tripay (jika ada)
 if(Array.isArray(channels)&&channels.length>0){
@@ -1118,13 +1130,6 @@ html+=`<div class="payment-group-title">Layanan Khusus</div>
 </div>
 <i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
 </label>`;
-
-// Info jika Tripay tidak tersedia
-if(!channels||channels.length===0){
-html+=`<div class="alert alert-error" style="margin-top:8px;">Metode pembayaran online sedang tidak tersedia. Silakan gunakan Jemput Donasi.</div>`;
-}
-
-html+='</div>';
 c.innerHTML=html;
 
 document.querySelectorAll('.payment-method').forEach(m=>{
