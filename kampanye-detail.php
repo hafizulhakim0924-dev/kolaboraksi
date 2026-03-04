@@ -1012,16 +1012,7 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 </div>
 <div class="form-group">
 <label>Metode Pembayaran <span class="required">*</span></label>
-<div class="payment-methods" id="paymentChannelsContainer">
-<label class="payment-method payment-method-pickup">
-<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
-<div class="payment-method-info">
-<div class="payment-method-name">Jemput Donasi</div>
-<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
-</div>
-<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
-</label>
-</div>
+<div class="payment-methods" id="paymentChannelsContainer"></div>
 </div>
 <div class="summary-box">
 <div class="summary-row"><span>Nominal Donasi:</span><span id="summaryAmount">Rp 0</span></div>
@@ -1047,13 +1038,104 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 <script>
 const CAMPAIGN_ID=<?= $campaign_id ?>;
 const CAMPAIGN_TITLE="<?= isset($campaign['title']) ? addslashes($campaign['title']) : '' ?>";
-let paymentChannels=[],currentTransaction=null;
+let paymentChannels=[],paymentChannelsLoaded=false,currentTransaction=null;
 
 function openDonateModal(){
 document.getElementById('donateModal').classList.add('show');
+if(!paymentChannelsLoaded){
+loadPaymentChannels();
+}
 }
 function closeDonateModal(){document.getElementById('donateModal').classList.remove('show')}
 function closePaymentModal(){document.getElementById('paymentModal').classList.remove('show');if(currentTransaction)location.reload()}
+
+function loadPaymentChannels(){
+const c=document.getElementById('paymentChannelsContainer');
+if(!c)return;
+c.innerHTML='<div class="loading"><div class="spinner"></div><p>Memuat metode pembayaran...</p></div>';
+fetch('?ajax=get_channels')
+.then(r=>r.json())
+.then(data=>{
+paymentChannelsLoaded=true;
+if(data&&data.success&&Array.isArray(data.data)){
+paymentChannels=data.data;
+renderPaymentChannels(paymentChannels);
+}else{
+renderPaymentChannels([]);
+}
+})
+.catch(e=>{
+console.error('loadPaymentChannels error',e);
+paymentChannelsLoaded=true;
+renderPaymentChannels([]);
+});
+}
+
+function renderPaymentChannels(channels){
+const c=document.getElementById('paymentChannelsContainer');
+if(!c)return;
+let html='<div class="payment-methods-inner">';
+
+// Metode Tripay (jika ada)
+if(Array.isArray(channels)&&channels.length>0){
+const grouped={};
+channels.forEach(ch=>{
+if(ch.active){
+if(!grouped[ch.group])grouped[ch.group]=[];
+grouped[ch.group].push(ch);
+}
+});
+for(const group in grouped){
+html+=`<div class="payment-group-title">${group}</div>`;
+grouped[group].forEach(ch=>{
+const feeFlat=(ch.total_fee&&ch.total_fee.flat)||0;
+const feePercent=(ch.total_fee&&ch.total_fee.percent)||0;
+let feeLabel='';
+if(feeFlat>0){
+feeLabel='Biaya: Rp '+feeFlat.toLocaleString('id-ID');
+}else if(feePercent>0){
+feeLabel='Biaya: '+feePercent+'%';
+}
+html+=`<label class="payment-method" data-code="${ch.code}">
+<input type="radio" name="payment_method" value="${ch.code}" data-fee-flat="${feeFlat}" data-fee-percent="${feePercent}" onchange="updateSummary()" required>
+<div class="payment-method-info">
+<div class="payment-method-name">${ch.name}</div>
+<div class="payment-method-fee">${feeLabel}</div>
+</div>
+${ch.icon_url?`<img src="${ch.icon_url}" class="payment-method-logo" alt="${ch.name}">`:''}
+</label>`;
+});
+}
+}
+
+// Layanan jemput donasi (selalu ada)
+html+=`<div class="payment-group-title">Layanan Khusus</div>
+<label class="payment-method payment-method-pickup">
+<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
+<div class="payment-method-info">
+<div class="payment-method-name">Jemput Donasi</div>
+<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
+</div>
+<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
+</label>`;
+
+// Info jika Tripay tidak tersedia
+if(!channels||channels.length===0){
+html+=`<div class="alert alert-error" style="margin-top:8px;">Metode pembayaran online sedang tidak tersedia. Silakan gunakan Jemput Donasi.</div>`;
+}
+
+html+='</div>';
+c.innerHTML=html;
+
+document.querySelectorAll('.payment-method').forEach(m=>{
+m.addEventListener('click',function(){
+document.querySelectorAll('.payment-method').forEach(x=>x.classList.remove('active'));
+this.classList.add('active');
+this.querySelector('input[type="radio"]').checked=true;
+updateSummary();
+});
+});
+}
 
 function updateSummary(){
 const amt=parseInt(document.getElementById('amount').value)||0;
