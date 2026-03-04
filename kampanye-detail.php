@@ -732,10 +732,7 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .form-row-inline .form-group{margin-bottom:0}
 .form-group-small{flex:0 0 90px}
 .form-group-flex{flex:1;min-width:0}
-.payment-toggle-wrap{margin-bottom:12px}
-.payment-toggle-btn{width:100%;padding:12px 16px;border:1.5px dashed #17a697;background:#F0FAF8;color:#17a697;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
-.payment-toggle-btn:hover{background:#E0F5F2;border-style:solid}
-.payment-channels-wrap{margin-top:10px;padding-top:10px;border-top:1px solid #E8EBED}
+.payment-toggle-wrap{display:none}
 .checkbox-group{display:flex;align-items:center;gap:8px;margin:10px 0;padding:10px;background:#F8FAFB;border-radius:8px}
 .checkbox-group input[type=checkbox]{width:18px;height:18px;accent-color:#17a697;cursor:pointer}
 .checkbox-group label{margin:0!important;font-size:12px;font-weight:500;color:#4B5563;cursor:pointer}
@@ -1013,15 +1010,17 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 <label>Pesan & Doa (opsional)</label>
 <textarea name="message" placeholder="Semoga bermanfaat..." rows="2"></textarea>
 </div>
-<div class="payment-toggle-wrap">
-<button type="button" class="payment-toggle-btn" id="paymentToggleBtn" onclick="togglePaymentChannels()">
-<i class="fas fa-credit-card"></i> Pilih Metode Pembayaran
-</button>
-<div id="paymentChannelsWrap" class="payment-channels-wrap" style="display:none">
 <div class="form-group">
 <label>Metode Pembayaran <span class="required">*</span></label>
-<div id="paymentChannelsContainer"></div>
+<div class="payment-methods" id="paymentChannelsContainer">
+<label class="payment-method payment-method-pickup">
+<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
+<div class="payment-method-info">
+<div class="payment-method-name">Jemput Donasi</div>
+<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
 </div>
+<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
+</label>
 </div>
 </div>
 <div class="summary-box">
@@ -1052,68 +1051,9 @@ let paymentChannels=[],currentTransaction=null;
 
 function openDonateModal(){
 document.getElementById('donateModal').classList.add('show');
-document.getElementById('paymentChannelsWrap').style.display='none';
-document.getElementById('paymentChannelsContainer').innerHTML='';
 }
-function closeDonateModal(){document.getElementById('donateModal').classList.remove('show');window._paymentChannelsLoaded=false}
-function togglePaymentChannels(){
-var wrap=document.getElementById('paymentChannelsWrap');
-if(!wrap)return;
-wrap.style.display='block';
-if(!window._paymentChannelsLoaded){loadPaymentChannels();window._paymentChannelsLoaded=true;}
-}
+function closeDonateModal(){document.getElementById('donateModal').classList.remove('show')}
 function closePaymentModal(){document.getElementById('paymentModal').classList.remove('show');if(currentTransaction)location.reload()}
-
-function loadPaymentChannels(){
-const c=document.getElementById('paymentChannelsContainer');
-c.innerHTML='<div class="loading"><div class="spinner"></div><p>Memuat metode pembayaran...</p></div>';
-fetch('?ajax=get_channels')
-.then(r=>r.json())
-.then(data=>{
-if(data.success&&data.data){paymentChannels=data.data;renderPaymentChannels(paymentChannels)}
-else{renderPaymentChannels([]);}
-})
-.catch(e=>{console.error('loadPaymentChannels error',e);renderPaymentChannels([]);})
-}
-
-function renderPaymentChannels(channels){
-const c=document.getElementById('paymentChannelsContainer');
-const grouped={};
-channels.forEach(ch=>{if(ch.active){if(!grouped[ch.group])grouped[ch.group]=[];grouped[ch.group].push(ch)}});
-let html='<div class="payment-methods">';
-for(const[group,chs]of Object.entries(grouped)){
-html+=`<div class="payment-group-title">${group}</div>`;
-chs.forEach(ch=>{
-let fee=ch.total_fee.flat>0?`Biaya: Rp ${ch.total_fee.flat.toLocaleString('id-ID')}`:(ch.total_fee.percent>0?`Biaya: ${ch.total_fee.percent}%`:'');
-html+=`<label class="payment-method" data-code="${ch.code}">
-<input type="radio" name="payment_method" value="${ch.code}" data-fee-flat="${ch.total_fee.flat}" data-fee-percent="${ch.total_fee.percent}" onchange="updateSummary()" required>
-<div class="payment-method-info"><div class="payment-method-name">${ch.name}</div><div class="payment-method-fee">${fee}</div></div>
-${ch.icon_url?`<img src="${ch.icon_url}" class="payment-method-logo" alt="${ch.name}">`:''}
-</label>`
-})
-}
-// Layanan jemput donasi (manual via WhatsApp)
-html+=`<div class="payment-group-title">Layanan Khusus</div>`;
-html+=`<label class="payment-method payment-method-pickup" data-code="JEMPUT_DONASI">
-<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
-<div class="payment-method-info">
-<div class="payment-method-name">Jemput Donasi</div>
-<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
-</div>
-<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
-</label>`;
-html+='</div>';
-c.innerHTML=html;
-document.querySelectorAll('.payment-method').forEach(m=>{
-m.addEventListener('click',function(){
-document.querySelectorAll('.payment-method').forEach(x=>x.classList.remove('active'));
-this.classList.add('active');
-this.querySelector('input[type="radio"]').checked=true;
-updateSummary()
-})
-})
-}
-
 
 function updateSummary(){
 const amt=parseInt(document.getElementById('amount').value)||0;
