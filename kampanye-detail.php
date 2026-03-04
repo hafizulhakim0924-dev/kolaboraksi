@@ -1137,6 +1137,15 @@ updateSummary();
 });
 }
 
+// Muat metode pembayaran segera setelah halaman siap
+document.addEventListener('DOMContentLoaded',function(){
+    try{
+        loadPaymentChannels();
+    }catch(e){
+        console.error('init loadPaymentChannels error',e);
+    }
+});
+
 function updateSummary(){
 const amt=parseInt(document.getElementById('amount').value)||0;
 const sel=document.querySelector('input[name="payment_method"]:checked');
