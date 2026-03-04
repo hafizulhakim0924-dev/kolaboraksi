@@ -1058,10 +1058,9 @@ document.getElementById('paymentChannelsContainer').innerHTML='';
 function closeDonateModal(){document.getElementById('donateModal').classList.remove('show');window._paymentChannelsLoaded=false}
 function togglePaymentChannels(){
 var wrap=document.getElementById('paymentChannelsWrap');
-if(wrap.style.display==='none'){
+if(!wrap)return;
 wrap.style.display='block';
 if(!window._paymentChannelsLoaded){loadPaymentChannels();window._paymentChannelsLoaded=true;}
-}else{wrap.style.display='none'}
 }
 function closePaymentModal(){document.getElementById('paymentModal').classList.remove('show');if(currentTransaction)location.reload()}
 
