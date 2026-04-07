@@ -164,28 +164,103 @@ $conn->close();
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #E8F5F2 0%, #F0FFFE 25%, #FFFFFF 50%, #F0FFFE 75%, #E8F5F2 100%);
-            background-attachment: fixed;
-            color: #333;
+            background: #C8D8D8;
+            color: #1a1a1a;
             overflow-x: hidden;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 100%;
+            max-width: 430px;
             margin: 0 auto;
-            background: transparent;
+            background: #F6F7F9;
             position: relative;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
 
+        @media (min-width: 431px) {
+            .container {
+                box-shadow: 0 0 40px rgba(0,0,0,.18);
+            }
+        }
+
+        /* ── App Header ── */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 430px;
+            z-index: 100;
+            background: #fff;
+            border-bottom: 1px solid #EAEAEA;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 6px rgba(0,0,0,.06);
+        }
+
+        .app-header-logo {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+        }
+
+        .app-header-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #17a697, #0f7a6e);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .app-header-logo-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #17a697;
+            letter-spacing: -.3px;
+        }
+
+        .app-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-header-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #F0F5F4;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #17a697;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .app-header-btn:active { background: #D9EEEB; }
+
         .content-wrapper {
             flex: 1;
             width: 100%;
-            padding-bottom: 80px;
-            overflow-y: auto;
+            padding-top: 54px;
+            padding-bottom: 76px;
         }
 
         .tab-content {
@@ -210,25 +285,23 @@ $conn->close();
         }
 
 
-        /* Banner Section - Slider */
+        /* Banner Section */
         .banner-section {
             position: relative;
             overflow: hidden;
-            background: transparent;
-            padding: 12px;
-            padding-bottom: 0;
-            margin-bottom: 12px;
-            border-radius: 0;
+            background: #fff;
+            padding: 10px 12px 0;
+            margin-bottom: 8px;
             width: 100%;
         }
 
         .banner-slider {
             position: relative;
             width: 100%;
-            height: 180px;
-            border-radius: 16px;
+            height: 170px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,.1);
         }
 
         .banner-slides {
@@ -300,11 +373,6 @@ $conn->close();
             border-radius: 4px;
         }
 
-        @media (min-width: 768px) {
-            .banner-slider {
-                height: 220px;
-            }
-        }
 /* Category Frame Container */
 .category-frame-container {
     position: fixed;
@@ -360,15 +428,11 @@ $conn->close();
     border: none;
     background: white;
 }
-        /* Menu Section - Mobile First */
+        /* Menu Section */
         .menu-section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px 12px;
-            margin: 8px;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 12px rgba(23, 166, 151, 0.06);
+            background: #fff;
+            padding: 12px 12px;
+            margin: 0 0 8px;
         }
 
         .menu-grid {
@@ -383,10 +447,10 @@ $conn->close();
             transition: all 0.2s ease;
             text-decoration: none;
             color: inherit;
-            padding: 8px 4px;
+            padding: 10px 4px;
             border-radius: 12px;
-            background: white;
-            border: 1px solid #F0F0F0;
+            background: #F6FAF9;
+            border: 1px solid #E2EDED;
         }
 
         .menu-item:active {
@@ -419,33 +483,12 @@ $conn->close();
             line-height: 1.2;
         }
 
-        @media (min-width: 480px) {
-            .menu-grid {
-                gap: 10px;
-            }
-            .menu-item {
-                padding: 10px 6px;
-            }
-            .menu-icon {
-                font-size: 28px;
-                margin-bottom: 6px;
-            }
-            .menu-icon-img {
-                width: 36px;
-                height: 36px;
-                margin-bottom: 6px;
-            }
-            .menu-name {
-                font-size: 11px;
-            }
-        }
 
         .zakat-calculator-card {
-            background: linear-gradient(135deg, #17a697 0%, #0f6f5f 100%);
-            margin: 8px;
-            padding: 18px 16px;
-            border-radius: 18px;
-            box-shadow: 0 4px 16px rgba(23, 166, 151, 0.15);
+            background: linear-gradient(135deg, #17a697 0%, #0f7a6e 100%);
+            margin: 0 0 8px;
+            padding: 16px 14px;
+            border-radius: 0;
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -494,42 +537,63 @@ $conn->close();
         }
 
         .section {
-            background: rgba(255, 255, 255, 0.95);
-            margin: 8px 8px 10px;
-            padding: 12px 12px 14px;
-            border-radius: 14px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 1px 6px rgba(23, 166, 151, 0.05);
+            background: #fff;
+            margin: 0 0 8px;
+            padding: 14px 12px;
+            border-radius: 0;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .section-title {
             font-size: 14px;
             font-weight: 700;
-            color: #1F1F1F;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
+        .section-title-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .icon-terbaru  { background: #FFF0E6; color: #E8622A; }
+        .icon-event    { background: #EEF2FF; color: #4F63D2; }
+        .icon-masjid   { background: #F0FAF9; color: #17a697; }
+        .icon-favorit  { background: #FFF0F3; color: #E53E6B; }
+        .icon-rekomen  { background: #FFFBEA; color: #D69E2E; }
 
         .campaign-slider {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             overflow-x: auto;
-            padding-bottom: 8px;
             scrollbar-width: none;
-            margin: 0 -16px;
-            padding-left: 16px;
-            padding-right: 16px;
+            margin: 0 -12px;
+            padding: 2px 12px 8px;
             -webkit-overflow-scrolling: touch;
         }
 
         .campaign-slider::-webkit-scrollbar {
             display: none;
+        }
+
+        .campaign-slider::after {
+            content: '';
+            flex-shrink: 0;
+            width: 4px;
         }
 
         .campaign-card-small {
@@ -744,13 +808,9 @@ $conn->close();
         }
 
         .donor-prayers-section {
-            background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
-            margin: 8px;
-            padding: 20px 16px;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(23, 166, 151, 0.1);
-            box-shadow: 0 4px 16px rgba(23, 166, 151, 0.05);
+            background: #fff;
+            margin: 0 0 8px;
+            padding: 16px 12px;
         }
 
         .donor-prayers-header {
@@ -895,14 +955,10 @@ $conn->close();
         }
 
         .about-section {
-            background: rgba(255, 255, 255, 0.8);
-            margin: 8px;
-            padding: 20px 16px;
-            border-radius: 16px;
+            background: #fff;
+            margin: 0 0 8px;
+            padding: 20px 14px;
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 16px rgba(23, 166, 151, 0.08);
         }
 
         .about-logo {
@@ -954,16 +1010,17 @@ $conn->close();
         .bottom-nav {
             position: fixed;
             bottom: 0;
-            left: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -2px 8px rgba(23, 166, 151, 0.1);
+            max-width: 430px;
+            background: #fff;
+            box-shadow: 0 -1px 0 #EAEAEA, 0 -4px 12px rgba(0,0,0,.05);
             display: flex;
             justify-content: space-around;
-            padding: 4px 0;
+            padding: 4px 0 6px;
             z-index: 1000;
-            border-top: 1px solid rgba(23, 166, 151, 0.1);
+            border-top: 1px solid #F0F0F0;
         }
 
         .nav-item {
@@ -1245,52 +1302,117 @@ $conn->close();
             line-height: 1.4;
         }
 
-        /* Tablet */
-        @media (min-width: 768px) {
-            .section-title {
-                font-size: 18px;
-            }
+        /* No desktop overrides – layout is locked at 430px */
 
-            .campaign-card-small {
-                min-width: 160px;
-                max-width: 180px;
-            }
-
-            .donor-prayers-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        /* ── Kolaborasi Modal ── */
+        .kolaborasi-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            z-index: 9999;
+            align-items: flex-end;
+            justify-content: center;
         }
-
-        /* Desktop */
-        @media (min-width: 1024px) {
-            .section {
-                margin: 8px 20px;
-            }
-
-            .menu-section {
-                margin: 8px 20px;
-            }
-
-            .zakat-calculator-card {
-                margin: 8px 20px;
-            }
-
-            .donor-prayers-section {
-                margin: 8px 20px;
-            }
-
-            .about-section {
-                margin: 8px 20px;
-            }
-
-            .donor-prayers-container {
-                grid-template-columns: repeat(4, 1fr);
-            }
+        .kolaborasi-modal-overlay.show {
+            display: flex;
+        }
+        .kolaborasi-modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 430px;
+            border-radius: 20px 20px 0 0;
+            padding: 24px 20px 32px;
+            animation: slideUp .28s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        .kolaborasi-modal-handle {
+            width: 36px;
+            height: 4px;
+            background: #DDD;
+            border-radius: 4px;
+            margin: 0 auto 20px;
+        }
+        .kolaborasi-modal-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #17a697, #0f7a6e);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            margin: 0 auto 14px;
+        }
+        .kolaborasi-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .kolaborasi-modal-text {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .kolaborasi-wa-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px;
+            background: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+        .kolaborasi-cancel-btn {
+            display: block;
+            width: 100%;
+            padding: 11px;
+            background: #F5F5F5;
+            color: #555;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Sticky App Header -->
+        <header class="app-header">
+            <a class="app-header-logo" href="index.php">
+                <div class="app-header-logo-icon">K</div>
+                <span class="app-header-logo-text">KolaborAksi</span>
+            </a>
+            <div class="app-header-actions">
+                <a href="pencariankampanye.php" class="app-header-btn" title="Cari kampanye">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a href="partner_dashboard.php" class="app-header-btn" title="Dashboard">
+                    <i class="fas fa-user-circle"></i>
+                </a>
+            </div>
+        </header>
+
         <div class="content-wrapper">
             <!-- HOME TAB -->
             <div id="tab-beranda" class="tab-content active">
@@ -1417,7 +1539,10 @@ $conn->close();
                 <!-- Latest Campaigns -->
                 <div class="section">
                     <div class="section-header">
-                        <h2 class="section-title">🔥 Terbaru</h2>
+                        <h2 class="section-title">
+                            <span class="section-title-icon icon-terbaru"><i class="fas fa-bolt"></i></span>
+                            Terbaru
+                        </h2>
                     </div>
                     <div class="campaign-slider" id="latestCampaigns"></div>
                 </div>
@@ -1425,21 +1550,32 @@ $conn->close();
                 <!-- Event Recommendations -->
                 <div class="section">
                     <div class="section-header">
-                        <h2 class="section-title">🎉 Event</h2>
+                        <h2 class="section-title">
+                            <span class="section-title-icon icon-event"><i class="fas fa-calendar-alt"></i></span>
+                            Event
+                        </h2>
                     </div>
                     <div class="campaign-slider" id="eventRecommendations"></div>
                 </div>
-<!-- Masjid & Rumah Tahfiz -->
-<div class="section">
-    <div class="section-header">
-        <h2 class="section-title">🕌 Masjid & Rumah Tahfiz</h2>
-    </div>
-    <div class="campaign-slider" id="masjidTahfiz"></div>
-</div>
+
+                <!-- Masjid & Rumah Tahfiz -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <span class="section-title-icon icon-masjid"><i class="fas fa-mosque"></i></span>
+                            Masjid & Rumah Tahfiz
+                        </h2>
+                    </div>
+                    <div class="campaign-slider" id="masjidTahfiz"></div>
+                </div>
+
                 <!-- Favorite Categories -->
                 <div class="section">
                     <div class="section-header">
-                        <h2 class="section-title">⭐ Favorit</h2>
+                        <h2 class="section-title">
+                            <span class="section-title-icon icon-favorit"><i class="fas fa-heart"></i></span>
+                            Favorit
+                        </h2>
                     </div>
                     <div class="campaign-slider" id="favoritCategories"></div>
                 </div>
@@ -1447,7 +1583,10 @@ $conn->close();
                 <!-- Recommendations -->
                 <div class="section">
                     <div class="section-header">
-                        <h2 class="section-title">💡 Rekomendasi</h2>
+                        <h2 class="section-title">
+                            <span class="section-title-icon icon-rekomen"><i class="fas fa-star"></i></span>
+                            Rekomendasi
+                        </h2>
                     </div>
                     <div class="rekomendasi-list" id="recommendationsList"></div>
                 </div>
@@ -1456,8 +1595,7 @@ $conn->close();
                 <div class="donor-prayers-section">
                     <div class="donor-prayers-header">
                         <div class="donor-prayers-title-container">
-                            <div class="dove-image">🕊️</div>
-                            <h2 class="donor-prayers-title">Doa Donatur</h2>
+                            <h2 class="donor-prayers-title" style="display:flex;align-items:center;gap:8px"><span class="section-title-icon" style="background:#F0F9FF;color:#3B82F6;width:30px;height:30px;border-radius:9px"><i class="fas fa-hands-praying"></i></span> Doa Donatur</h2>
                         </div>
                         <p class="donor-prayers-subtitle">Doa dari para dermawan</p>
                     </div>
@@ -1466,7 +1604,9 @@ $conn->close();
 
                 <!-- About Section -->
                 <div class="about-section">
-                    <div class="about-logo">💝</div>
+                    <div class="about-logo" style="font-size:0">
+                        <div style="width:52px;height:52px;background:linear-gradient(135deg,#17a697,#0f7a6e);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:#fff;font-weight:700">K</div>
+                    </div>
                     <h2 class="about-title">KolaborAksi</h2>
                     <p class="about-content">
                         Platform donasi online terpercaya yang menghubungkan donatur dengan penerima manfaat. Transparansi penuh dalam setiap kampanye.
@@ -1605,11 +1745,29 @@ $conn->close();
                 <div class="nav-icon"><i class="fas fa-search"></i></div>
                 <div>Jelajah</div>
             </button>
-            <button class="nav-item" onclick="window.location.href='partner_dashboard.php'">
-                <div class="nav-icon"><i class="fas fa-user-shield"></i></div>
-                <div>Admin</div>
+            <button class="nav-item" onclick="showKolaborasiModal()">
+                <div class="nav-icon"><i class="fas fa-handshake"></i></div>
+                <div>Kolaborasi</div>
             </button>
         </nav>
+
+        <!-- Kolaborasi Modal -->
+        <div class="kolaborasi-modal-overlay" id="kolaborasiModal" onclick="hideKolaborasiModal()">
+            <div class="kolaborasi-modal-box" onclick="event.stopPropagation()">
+                <div class="kolaborasi-modal-handle"></div>
+                <div class="kolaborasi-modal-icon"><i class="fas fa-handshake"></i></div>
+                <div class="kolaborasi-modal-title">Ingin Berkolaborasi?</div>
+                <div class="kolaborasi-modal-text">
+                    Untuk bergabung sebagai mitra atau mengelola kampanye,<br>
+                    silakan hubungi admin kami melalui WhatsApp.
+                </div>
+                <a href="https://wa.me/6282378229912?text=Halo%20Admin%20KolaborAksi%2C%20saya%20ingin%20berkolaborasi." class="kolaborasi-wa-btn" target="_blank">
+                    <i class="fab fa-whatsapp" style="font-size:18px"></i>
+                    Hubungi 0823-7822-9912
+                </a>
+                <button class="kolaborasi-cancel-btn" onclick="hideKolaborasiModal()">Tutup</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -2181,6 +2339,13 @@ function closeCategoryFrame() {
                 showBannerPopup();
             }, 5000);
         });
+
+        function showKolaborasiModal() {
+            document.getElementById('kolaborasiModal').classList.add('show');
+        }
+        function hideKolaborasiModal() {
+            document.getElementById('kolaborasiModal').classList.remove('show');
+        }
     </script>
 </body>
 </html>

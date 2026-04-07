@@ -5,8 +5,8 @@ if (isset($_GET['ajax']) || isset($_POST['ajax'])) {
     ini_set('display_errors', 0);
     ini_set('log_errors', 1);
 } else {
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
 }
 session_start();
 header('Content-Type: text/html; charset=utf-8');
@@ -86,19 +86,19 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'check_status') {
     header('Content-Type: application/json; charset=utf-8');
     
     try {
-    $conn = getDBConnection();
-    $stmt = $conn->prepare("SELECT status FROM donations WHERE tripay_reference = ?");
-    if ($stmt) {
-        $stmt->bind_param("s", $_GET['reference']);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
-    } else {
-        error_log("Error preparing check_status query: " . $conn->error);
-        echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
-    }
-    $conn->close();
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT status FROM donations WHERE tripay_reference = ?");
+        if ($stmt) {
+            $stmt->bind_param("s", $_GET['reference']);
+            $stmt->execute();
+            $result = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            echo json_encode($result ? ['success' => true, 'status' => $result['status']] : ['success' => false]);
+        } else {
+            error_log("Error preparing check_status query: " . $conn->error);
+            echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
+        }
+        $conn->close();
     } catch (Exception $e) {
         error_log("Error in check_status: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Gagal memeriksa status pembayaran']);
@@ -116,59 +116,54 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
     ob_start();
     
     try {
-    $amount = intval($_POST['amount']);
-    if ($amount < 10000) {
-        echo json_encode(['success' => false, 'message' => 'Minimal donasi Rp 10.000']);
-            $output = ob_get_clean();
-            echo $output;
-        exit;
-    }
+        $amount = intval($_POST['amount']);
+        if ($amount < 10000) {
+            echo json_encode(['success' => false, 'message' => 'Minimal donasi Rp 10.000']);
+            ob_end_clean();
+            exit;
+        }
 
-    $phone = $_POST['donor_phone'];
-    if (substr($phone, 0, 1) === '0') $phone = '62' . substr($phone, 1);
-    elseif (substr($phone, 0, 2) !== '62') $phone = '62' . $phone;
+        $phone = $_POST['donor_phone'];
+        if (substr($phone, 0, 1) === '0') $phone = '62' . substr($phone, 1);
+        elseif (substr($phone, 0, 2) !== '62') $phone = '62' . $phone;
 
-    $conn = getDBConnection();
-    $stmt = $conn->prepare("SELECT * FROM campaigns WHERE id = ?");
-    if (!$stmt) {
-        error_log("Error preparing campaign query: " . $conn->error);
-        echo json_encode(['success' => false, 'message' => 'Gagal memuat data kampanye']);
-        $output = ob_get_clean();
-        echo $output;
-        exit;
-    }
-    $stmt->bind_param("i", $_POST['campaign_id']);
-    $stmt->execute();
-    $campaign = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("SELECT * FROM campaigns WHERE id = ?");
+        if (!$stmt) {
+            error_log("Error preparing campaign query: " . $conn->error);
+            echo json_encode(['success' => false, 'message' => 'Gagal memuat data kampanye']);
+            ob_end_clean();
+            exit;
+        }
+        $stmt->bind_param("i", $_POST['campaign_id']);
+        $stmt->execute();
+        $campaign = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-    if (!$campaign) {
-        echo json_encode(['success' => false, 'message' => 'Kampanye tidak ditemukan']);
-            $output = ob_get_clean();
-            echo $output;
-        exit;
-    }
+        if (!$campaign) {
+            echo json_encode(['success' => false, 'message' => 'Kampanye tidak ditemukan']);
+            ob_end_clean();
+            exit;
+        }
 
-    $merchant_ref = 'DN' . time() . rand(1000, 9999);
-        
-        // Calculate signature correctly
+        $merchant_ref = 'DN' . time() . rand(1000, 9999);
         $signature_string = TRIPAY_MERCHANT_CODE . $merchant_ref . $amount;
         $signature = hash_hmac('sha256', $signature_string, TRIPAY_PRIVATE_KEY);
-        
-    $customer_email = !empty(trim($_POST['donor_email'] ?? '')) ? trim($_POST['donor_email']) : 'donasi@kolaboraksi.id';
-    $data = [
-        'method' => $_POST['payment_method'],
-        'merchant_ref' => $merchant_ref,
-        'amount' => $amount,
-        'customer_name' => trim($_POST['donor_name']),
-        'customer_email' => $customer_email,
-        'customer_phone' => $phone,
-        'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
-        'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
+
+        $customer_email = !empty(trim($_POST['donor_email'] ?? '')) ? trim($_POST['donor_email']) : 'donasi@kolaboraksi.id';
+        $data = [
+            'method' => $_POST['payment_method'],
+            'merchant_ref' => $merchant_ref,
+            'amount' => $amount,
+            'customer_name' => trim($_POST['donor_name']),
+            'customer_email' => $customer_email,
+            'customer_phone' => $phone,
+            'order_items' => [['name' => 'Donasi: ' . substr($campaign['title'], 0, 50), 'price' => $amount, 'quantity' => 1]],
+            'return_url' => SITE_URL . '/kampanye-detail.php?id=' . $_POST['campaign_id'],
             'callback_url' => CALLBACK_URL,
             'expired_time' => (int)(time() + 86400),
             'signature' => $signature
-    ];
+        ];
 
     // Retry logic untuk mengatasi timeout
     $max_retries = 2;
@@ -231,13 +226,8 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             if (strpos($curl_error, 'timeout') !== false || strpos($curl_error, 'resolve') !== false) {
                 $error_message = 'Koneksi ke server pembayaran timeout. Pastikan koneksi internet Anda stabil dan coba lagi.';
             }
-            echo json_encode([
-                'success' => false, 
-                'message' => $error_message,
-                'error' => $curl_error
-            ]);
-            $output = ob_get_clean();
-            echo $output;
+            echo json_encode(['success' => false, 'message' => $error_message, 'error' => $curl_error]);
+            ob_end_clean();
             exit;
         }
 
@@ -246,135 +236,111 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
             $conn->close();
             error_log("Tripay HTTP Error: Code " . $http_code . " - Response: " . substr($curl_response, 0, 500));
             echo json_encode([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Server pembayaran mengembalikan error (HTTP ' . $http_code . '). Silakan coba lagi.',
-                'http_code' => $http_code,
-                'response' => substr($curl_response, 0, 200)
+                'http_code' => $http_code
             ]);
-            $output = ob_get_clean();
-            echo $output;
+            ob_end_clean();
             exit;
         }
 
         // Decode JSON response
         $response = json_decode($curl_response, true);
-        
-        // Handle JSON decode errors
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             $conn->close();
             error_log("Tripay JSON Error: " . json_last_error_msg() . " - Response: " . substr($curl_response, 0, 500));
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Respon dari server tidak valid. Silakan coba lagi.',
-                'json_error' => json_last_error_msg()
-            ]);
-            $output = ob_get_clean();
-            echo $output;
+            echo json_encode(['success' => false, 'message' => 'Respon dari server tidak valid. Silakan coba lagi.']);
+            ob_end_clean();
             exit;
         }
 
-        // Validate response structure
         if (!$response || !is_array($response)) {
             $conn->close();
             error_log("Tripay Invalid Response: " . substr($curl_response, 0, 500));
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Respon dari server tidak valid. Silakan coba lagi.'
-            ]);
-            $output = ob_get_clean();
-            echo $output;
+            echo json_encode(['success' => false, 'message' => 'Respon dari server tidak valid. Silakan coba lagi.']);
+            ob_end_clean();
             exit;
         }
-    
-        // Log response for debugging (remove sensitive data)
+
         if (isset($response['success']) && !$response['success']) {
             error_log("Tripay API Error: " . json_encode($response));
         }
 
         // Check if transaction creation was successful
         if (isset($response['success']) && $response['success'] === true && isset($response['data'])) {
-        $tx = $response['data'];
-            
-            // Validate required transaction data
+            $tx = $response['data'];
+
             if (!isset($tx['reference']) || !isset($tx['amount']) || !isset($tx['payment_name'])) {
                 $conn->close();
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Data transaksi tidak lengkap. Silakan coba lagi.'
-                ]);
-                $output = ob_get_clean();
-                echo $output;
+                echo json_encode(['success' => false, 'message' => 'Data transaksi tidak lengkap. Silakan coba lagi.']);
+                ob_end_clean();
                 exit;
             }
-            
-        $qr_url = $tx['qr_url'] ?? '';
+
+            $qr_url = $tx['qr_url'] ?? '';
             $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
             $message_raw = isset($_POST['message']) ? $_POST['message'] : '';
             $message = !empty($message_raw) ? mysqli_real_escape_string($conn, $message_raw) : '';
             $donor_sapaan = isset($_POST['donor_sapaan']) ? mysqli_real_escape_string($conn, trim($_POST['donor_sapaan'])) : '';
             $donor_email_save = !empty(trim($_POST['donor_email'] ?? '')) ? trim($_POST['donor_email']) : '';
-            
-            // Prepare SQL statement (donor_sapaan, donor_email nullable)
-            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_sapaan, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, ?, FROM_UNIXTIME(?))");
-        
-            if (!$stmt) {
-                throw new Exception("Failed to prepare statement: " . $conn->error);
-            }
-            
             $total_fee = isset($tx['total_fee']) ? intval($tx['total_fee']) : 0;
             $total_amount = isset($tx['amount']) ? intval($tx['amount']) : $amount;
             $checkout_url = $tx['checkout_url'] ?? '';
             $payment_name = $tx['payment_name'] ?? $_POST['payment_method'];
             $expired_time = isset($tx['expired_time']) ? intval($tx['expired_time']) : (time() + 86400);
-            
-            // Bind 18 params: campaign_id, donor_name, donor_sapaan, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, payment_url, qr_url, is_anonymous, message, expired_time
-        $stmt->bind_param(
+
+            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, donor_name, donor_sapaan, donor_email, donor_phone, amount, fee_total, total_amount, payment_method, payment_channel, tripay_reference, tripay_merchant_ref, status, payment_url, qr_url, is_anonymous, message, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, ?, FROM_UNIXTIME(?))");
+
+            if (!$stmt) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+
+            $stmt->bind_param(
                 "issssiiissssssisi",
-                $_POST['campaign_id'],     // 1. i - campaign_id
-                $_POST['donor_name'],      // 2. s - donor_name
-                $donor_sapaan,             // 3. s - donor_sapaan
-                $donor_email_save,         // 4. s - donor_email (nullable)
-                $phone,                    // 5. s - donor_phone
-                $amount,                   // 6. i - amount
-                $total_fee,                // 7. i - fee_total
-                $total_amount,             // 8. i - total_amount
-                $_POST['payment_method'],  // 9. s - payment_method
-                $payment_name,             // 10. s - payment_channel
-                $tx['reference'],          // 11. s - tripay_reference
-                $merchant_ref,             // 12. s - tripay_merchant_ref
-                $checkout_url,             // 13. s - payment_url
-                $qr_url,                   // 14. s - qr_url
-                $is_anonymous,             // 15. i - is_anonymous
-                $message,                  // 16. s - message
-                $expired_time              // 17. i - expired_at
-        );
+                $_POST['campaign_id'],    // 1. i - campaign_id
+                $_POST['donor_name'],     // 2. s - donor_name
+                $donor_sapaan,            // 3. s - donor_sapaan
+                $donor_email_save,        // 4. s - donor_email
+                $phone,                   // 5. s - donor_phone
+                $amount,                  // 6. i - amount
+                $total_fee,               // 7. i - fee_total
+                $total_amount,            // 8. i - total_amount
+                $_POST['payment_method'], // 9. s - payment_method
+                $payment_name,            // 10. s - payment_channel
+                $tx['reference'],         // 11. s - tripay_reference
+                $merchant_ref,            // 12. s - tripay_merchant_ref
+                $checkout_url,            // 13. s - payment_url
+                $qr_url,                  // 14. s - qr_url
+                $is_anonymous,            // 15. i - is_anonymous
+                $message,                 // 16. s - message
+                $expired_time             // 17. i - expired_at
+            );
 
             if ($stmt->execute()) {
-        $stmt->close();
-        $conn->close();
-        
-        echo json_encode(['success' => true, 'data' => [
-            'reference' => $tx['reference'],
-            'payment_name' => $tx['payment_name'],
-            'pay_code' => $tx['pay_code'] ?? null,
-            'qr_url' => $tx['qr_url'] ?? null,
-            'amount' => $tx['amount'],
+                $stmt->close();
+                $conn->close();
+                echo json_encode(['success' => true, 'data' => [
+                    'reference' => $tx['reference'],
+                    'payment_name' => $tx['payment_name'],
+                    'pay_code' => $tx['pay_code'] ?? null,
+                    'qr_url' => $tx['qr_url'] ?? null,
+                    'amount' => $tx['amount'],
                     'fee' => $total_fee,
                     'expired_time' => $expired_time,
-            'instructions' => $tx['instructions'] ?? []
-        ]]);
-    } else {
+                    'instructions' => $tx['instructions'] ?? []
+                ]]);
+            } else {
                 $stmt->close();
                 $conn->close();
                 echo json_encode([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Gagal menyimpan data transaksi. Silakan coba lagi.',
                     'db_error' => $stmt->error
                 ]);
             }
         } else {
             $conn->close();
-            // Get error message from response
             $error_message = 'Gagal membuat transaksi';
             
             // Try to get error message from various possible locations
@@ -470,19 +436,7 @@ if (isset($_POST['ajax']) && $_POST['ajax'] === 'process_donation') {
         ]);
     }
     
-    // Clean any output buffer and send JSON
-    $output = ob_get_clean();
-    if (!empty($output) && json_decode($output) === null) {
-        // If output is not JSON, it means there was an error (HTML output)
-        error_log("Non-JSON output detected in process_donation: " . substr($output, 0, 500));
-        echo json_encode([
-            'success' => false,
-            'message' => 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.',
-            'error' => 'Invalid response from server'
-        ]);
-    } else {
-        echo $output;
-    }
+    ob_end_flush();
     exit;
 }
 
@@ -661,67 +615,73 @@ if (empty($og_image)) {
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height:1.6}
-.container{max-width:900px;margin:0 auto;background:#fff;min-height:100vh}
-.header{background:#fff;padding:20px 24px;border-bottom:1px solid #E8EBED;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.03)}
-.header-content{display:flex;align-items:center;gap:16px}
-.back-btn{background:#F5F7F9;border:none;font-size:18px;color:#17a697;padding:10px;cursor:pointer;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.back-btn:hover{background:#E8F5F2;transform:translateX(-2px)}
-.header-title{font-size:17px;font-weight:600;flex:1}
-.content{padding:24px 24px 100px;max-width:800px;margin:0 auto;width:100%}
-.campaign-image-wrapper{width:100%;margin-bottom:32px;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);aspect-ratio:16/9;position:relative}
+body{font-family:Poppins,sans-serif;background:#C8D8D8;color:#1a1a1a;line-height:1.6}
+.container{max-width:430px;margin:0 auto;background:#F6F7F9;min-height:100vh;position:relative}
+@media(min-width:431px){.container{box-shadow:0 0 40px rgba(0,0,0,.18)}}
+/* Header */
+.header{background:#fff;padding:10px 14px;border-bottom:1px solid #EAEAEA;position:sticky;top:0;z-index:50;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.header-content{display:flex;align-items:center;gap:10px}
+.back-btn{background:#F0F5F4;border:none;font-size:15px;color:#17a697;cursor:pointer;border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.back-btn:active{background:#D9EEEB}
+.header-title{font-size:14px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a1a1a}
+/* Content */
+.content{padding:12px 12px 148px;width:100%}
+.campaign-image-wrapper{width:100%;margin-bottom:12px;border-radius:10px;overflow:hidden;aspect-ratio:16/9;position:relative}
 .campaign-image,.campaign-image-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 .campaign-image{object-fit:cover}
-.campaign-image-emoji{font-size:120px;background:linear-gradient(135deg,#667eea,#764ba2)}
-.media-slider{width:100%;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/9;background:#000}
+.campaign-image-emoji{font-size:72px;background:linear-gradient(135deg,#667eea,#764ba2)}
+/* Media Slider */
+.media-slider{width:100%;position:relative;border-radius:10px;overflow:hidden;aspect-ratio:16/9;background:#000;margin-bottom:12px}
 .media-slide{display:none;width:100%;height:100%;object-fit:contain;background:#000}
 .media-slide.active{display:block}
 .media-slide img,.media-slide video{width:100%;height:100%;object-fit:contain}
-.slider-controls{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
-.slider-btn{background:rgba(255,255,255,.8);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#17a697;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.slider-btn:hover{background:#fff;transform:scale(1.1)}
-.slider-dots{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
-.slider-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
-.slider-dot.active{background:#17a697;width:24px;border-radius:5px}
-.media-counter{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.6);color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:10}
-.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:20px;border:1px solid #E8EBED}
-.campaign-title{font-size:28px;font-weight:700;margin-bottom:24px;line-height:1.3}
-.organizer{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #F0F2F4}
-.organizer-avatar{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#17a697,#139989);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px}
-.organizer-info{flex:1}
-.organizer-name{font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px;font-size:15px}
-.organizer-badge{color:#17a697;font-size:14px}
-.organizer-label{font-size:12px;color:#6B7280}
-.progress-label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:12px}
-.progress-percentage{color:#17a697;font-weight:700;font-size:14px}
-.progress-bar{width:100%;height:10px;background:#F0F2F4;border-radius:10px;overflow:hidden;margin-bottom:20px}
-.progress-fill{height:100%;background:linear-gradient(90deg,#17a697,#1bc9b5);width:0;border-radius:10px;transition:width 1.5s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 8px rgba(23,166,151,.3)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.stat{background:#F8FAFB;padding:20px 16px;border-radius:12px;text-align:center;border:1px solid #E8EBED;transition:all .2s}
-.stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.slider-controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
+.slider-btn{background:rgba(255,255,255,.85);border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#17a697;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.slider-dots{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10}
+.slider-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
+.slider-dot.active{background:#17a697;width:20px;border-radius:4px}
+.media-counter{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;z-index:10}
+/* Cards */
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #EAEAEA}
+.campaign-title{font-size:18px;font-weight:700;margin-bottom:14px;line-height:1.3}
+.organizer{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #F0F2F4}
+.organizer-avatar{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#17a697,#139989);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;flex-shrink:0}
+.organizer-info{flex:1;min-width:0}
+.organizer-name{font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:5px;font-size:13px}
+.organizer-badge{color:#17a697;font-size:13px}
+.organizer-label{font-size:11px;color:#6B7280}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:8px}
+.progress-percentage{color:#17a697;font-weight:700;font-size:13px}
+.progress-bar{width:100%;height:7px;background:#EAEAEA;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#17a697,#1bc9b5);width:0;border-radius:10px;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#F8FAFB;padding:12px 8px;border-radius:10px;text-align:center;border:1px solid #EAEAEA}
 .stat.primary{background:linear-gradient(135deg,#E8F5F2,#D4EDE8);border-color:#B8E6DB}
-.stat-label{font-size:11px;color:#6B7280;margin-bottom:8px;font-weight:500;text-transform:uppercase}
-.stat-value{font-size:15px;font-weight:700;word-break:break-word}
+.stat-label{font-size:10px;color:#6B7280;margin-bottom:6px;font-weight:500;text-transform:uppercase}
+.stat-value{font-size:12px;font-weight:700;word-break:break-word}
 .stat.primary .stat-value{color:#17a697}
-.stat-icon{font-size:24px;margin-bottom:8px;display:block}
-.section-title{font-size:17px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.section-title i{color:#17a697;font-size:20px}
-.section-content{font-size:15px;line-height:1.7;color:#4B5563}
-.share-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
-.share-btn{padding:14px;border:1.5px solid #E8EBED;background:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;color:#4B5563;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.share-btn:hover{background:#F8FAFB;border-color:#17a697;color:#17a697;transform:translateY(-2px)}
-.donate-button{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:900px;background:#fff;padding:16px 24px;border-top:1px solid #E8EBED;z-index:200;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
-.donate-btn{width:100%;background:linear-gradient(135deg,#17a697,#139989);color:#fff;border:none;padding:16px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 12px rgba(23,166,151,.25)}
-.donate-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,166,151,.35)}
-.modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,.6)}
+.stat-icon{font-size:20px;margin-bottom:6px;display:block}
+.section-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title i{color:#17a697;font-size:16px}
+.section-content{font-size:13px;line-height:1.7;color:#4B5563}
+/* Share */
+.share-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.share-btn{padding:11px 8px;border:1.5px solid #E8EBED;background:#fff;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;color:#4B5563;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.share-btn:active{background:#F0FAF8;border-color:#17a697;color:#17a697}
+/* Donate fixed button – sits ABOVE the bottom nav */
+.donate-button{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;padding:10px 14px;border-top:1px solid #EAEAEA;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.donate-btn{width:100%;background:linear-gradient(135deg,#17a697,#139989);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(23,166,151,.25)}
+.donate-btn:active{transform:translateY(1px)}
+/* Modals */
+.modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,.6)}
 .modal.show{display:flex;align-items:center;justify-content:center}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal-content{background:#fff;margin:20px;border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-header{background:linear-gradient(135deg,#17a697,#139989);color:#fff;padding:16px 20px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center}
-.modal-title{font-size:17px;font-weight:700}
-.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
-.modal-close:hover{background:rgba(255,255,255,.25)}
-.modal-body{padding:16px 20px}
+.modal-content{background:#fff;margin:16px;border-radius:16px;max-width:398px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{background:linear-gradient(135deg,#17a697,#139989);color:#fff;padding:14px 16px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:16px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
+.modal-body{padding:14px 16px}
+/* Form */
 .form-group{margin-bottom:12px}
 .form-group label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
 .form-group label .required{color:#EF4444}
@@ -733,6 +693,12 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .form-group-small{flex:0 0 90px}
 .form-group-flex{flex:1;min-width:0}
 .payment-toggle-wrap{display:none}
+.select-payment-btn{width:100%;padding:10px 12px;border:1.5px solid #E8EBED;border-radius:8px;font-size:13px;font-family:Poppins,sans-serif;background:#F8FAFB;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:all .2s}
+.select-payment-btn:hover,.select-payment-btn.open{border-color:#17a697;background:#fff;box-shadow:0 0 0 3px rgba(23,166,151,.08)}
+.select-payment-btn .fa-chevron-down{transition:transform .2s;color:#9CA3AF;font-size:11px;flex-shrink:0}
+.select-payment-btn.open .fa-chevron-down{transform:rotate(180deg)}
+.payment-picker{display:none;border:1.5px solid #17a697;border-radius:8px;margin-top:6px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(23,166,151,.1)}
+.payment-picker.open{display:block}
 .checkbox-group{display:flex;align-items:center;gap:8px;margin:10px 0;padding:10px;background:#F8FAFB;border-radius:8px}
 .checkbox-group input[type=checkbox]{width:18px;height:18px;accent-color:#17a697;cursor:pointer}
 .checkbox-group label{margin:0!important;font-size:12px;font-weight:500;color:#4B5563;cursor:pointer}
@@ -740,94 +706,83 @@ body{font-family:Poppins,sans-serif;background:#F8FAFB;color:#1a1a1a;line-height
 .payment-methods::-webkit-scrollbar{width:5px}
 .payment-methods::-webkit-scrollbar-track{background:#F0F2F4;border-radius:10px}
 .payment-methods::-webkit-scrollbar-thumb{background:#17a697;border-radius:10px}
-.payment-group-title{font-size:11px;font-weight:700;color:#9CA3AF;margin:16px 0 10px;text-transform:uppercase}
-.payment-method{border:1.5px solid #E8EBED;border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;background:#fff}
-.payment-method:hover{border-color:#17a697;background:#F8FAFB}
+.payment-group-title{font-size:11px;font-weight:700;color:#9CA3AF;margin:12px 0 8px;text-transform:uppercase}
+.payment-method{border:1.5px solid #E8EBED;border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;background:#fff}
+.payment-method:active{border-color:#17a697;background:#F0FAF8}
 .payment-method.active{border-color:#17a697;background:#F0FAF8;box-shadow:0 2px 8px rgba(23,166,151,.15)}
 .payment-method-pickup{border-style:dashed;background:#FDFCF8}
-.payment-method input[type=radio]{width:20px;height:20px;accent-color:#17a697}
+.payment-method input[type=radio]{width:18px;height:18px;accent-color:#17a697}
 .payment-method-info{flex:1}
-.payment-method-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.payment-method-name{font-size:13px;font-weight:600;margin-bottom:3px}
 .payment-method-fee{font-size:11px;color:#6B7280}
-.payment-method-logo{width:56px;height:28px;object-fit:contain}
-.summary-box{background:#F8FAFB;padding:12px 14px;border-radius:10px;margin:12px 0;border:1.5px solid #E8EBED}
+.payment-method-logo{width:48px;height:24px;object-fit:contain}
+.summary-box{background:#F8FAFB;padding:11px 13px;border-radius:10px;margin:12px 0;border:1.5px solid #E8EBED}
 .summary-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:#4B5563}
-.summary-row.total{padding-top:8px;border-top:1.5px solid #E8EBED;font-weight:700;font-size:15px;color:#17a697;margin-top:6px}
+.summary-row.total{padding-top:8px;border-top:1.5px solid #E8EBED;font-weight:700;font-size:14px;color:#17a697;margin-top:6px}
 .submit-btn{width:100%;background:linear-gradient(135deg,#17a697,#139989);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(23,166,151,.25)}
-.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,166,151,.35)}
 .submit-btn:disabled{background:#D1D5DB;cursor:not-allowed;box-shadow:none}
-.donations-list{margin-top:20px}
-.donation-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:#F8FAFB;border-radius:12px;margin-bottom:12px;border:1px solid #E8EBED;transition:all .2s}
-.donation-item:hover{transform:translateX(4px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
-.donation-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#17a697,#1bc9b5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;box-shadow:0 2px 8px rgba(23,166,151,.2)}
+/* Donations */
+.donations-list{margin-top:14px}
+.donation-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:#F8FAFB;border-radius:10px;margin-bottom:8px;border:1px solid #EAEAEA}
+.donation-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#17a697,#1bc9b5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
 .donation-info{flex:1;min-width:0}
-.donation-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
-.donation-name{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
-.donation-amount{font-weight:700;color:#17a697;font-size:15px;white-space:nowrap}
-.donation-message{font-size:13px;color:#6B7280;line-height:1.5;margin-top:6px;font-style:italic}
+.donation-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
+.donation-name{font-weight:600;font-size:13px;display:flex;align-items:center;gap:5px}
+.donation-amount{font-weight:700;color:#17a697;font-size:13px;white-space:nowrap}
+.donation-message{font-size:12px;color:#6B7280;line-height:1.5;margin-top:4px;font-style:italic}
 .donation-time{font-size:11px;color:#9CA3AF;margin-top:4px;display:flex;align-items:center;gap:4px}
-.empty-donations{text-align:center;padding:40px 20px;color:#9CA3AF}
-.empty-donations i{font-size:48px;margin-bottom:16px;opacity:.5}
-.payment-code-box{background:#F8FAFB;padding:20px;border-radius:12px;margin:20px 0;border:1.5px solid #E8EBED;text-align:center}
-.payment-code-label{font-size:13px;color:#6B7280;margin-bottom:10px;font-weight:500}
-.payment-code-value{font-size:24px;font-weight:700;color:#17a697;letter-spacing:2px;margin-bottom:12px}
-.copy-code-btn{padding:10px 24px;background:#17a697;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-.copy-code-btn:hover{background:#139989;transform:translateY(-1px)}
-.qr-code-box{margin:20px 0;text-align:center}
-.qr-code-box img{max-width:250px;border:1.5px solid #E8EBED;border-radius:12px;padding:15px}
-.countdown-box{background:#FEF3C7;padding:16px;border-radius:12px;margin-bottom:20px;border:1.5px solid #FDE68A;text-align:center}
-.countdown-label{font-size:12px;color:#92400E;margin-bottom:8px;font-weight:500}
-.countdown-timer{font-size:24px;font-weight:700;color:#92400E}
-.instructions-box{text-align:left;margin-top:20px;padding:16px;background:#F8FAFB;border-radius:12px;border:1.5px solid #E8EBED}
-.instructions-title{font-size:15px;font-weight:700;margin-bottom:12px}
+.empty-donations{text-align:center;padding:30px 20px;color:#9CA3AF}
+.empty-donations i{font-size:40px;margin-bottom:12px;opacity:.5}
+/* Payment result */
+.payment-code-box{background:#F8FAFB;padding:16px;border-radius:12px;margin:16px 0;border:1.5px solid #E8EBED;text-align:center}
+.payment-code-label{font-size:12px;color:#6B7280;margin-bottom:8px;font-weight:500}
+.payment-code-value{font-size:22px;font-weight:700;color:#17a697;letter-spacing:2px;margin-bottom:10px}
+.copy-code-btn{padding:9px 20px;background:#17a697;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.qr-code-box{margin:16px 0;text-align:center}
+.qr-code-box img{max-width:200px;border:1.5px solid #E8EBED;border-radius:10px;padding:12px}
+.countdown-box{background:#FEF3C7;padding:14px;border-radius:10px;margin-bottom:16px;border:1.5px solid #FDE68A;text-align:center}
+.countdown-label{font-size:12px;color:#92400E;margin-bottom:6px;font-weight:500}
+.countdown-timer{font-size:22px;font-weight:700;color:#92400E}
+.instructions-box{text-align:left;margin-top:16px;padding:14px;background:#F8FAFB;border-radius:10px;border:1.5px solid #E8EBED}
+.instructions-title{font-size:14px;font-weight:700;margin-bottom:10px}
 .instructions-box ol{list-style:none;counter-reset:step;padding:0}
-.instructions-box li{counter-increment:step;padding:10px 10px 10px 40px;margin-bottom:8px;background:#fff;border-radius:8px;font-size:12px;line-height:1.5;position:relative}
-.instructions-box li::before{content:counter(step);position:absolute;left:10px;top:10px;width:24px;height:24px;background:#17a697;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
-.loading{text-align:center;padding:40px}
-.spinner{border:4px solid #F0F2F4;border-top:4px solid #17a697;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 16px}
+.instructions-box li{counter-increment:step;padding:9px 9px 9px 36px;margin-bottom:6px;background:#fff;border-radius:8px;font-size:12px;line-height:1.5;position:relative}
+.instructions-box li::before{content:counter(step);position:absolute;left:8px;top:9px;width:22px;height:22px;background:#17a697;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px}
+.loading{text-align:center;padding:30px}
+.spinner{border:4px solid #F0F2F4;border-top:4px solid #17a697;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:13px}
+.alert{padding:11px 14px;border-radius:9px;margin-bottom:14px;font-size:13px}
 .alert-error{background:#FEE2E2;color:#991B1B;border:1.5px solid #FECACA}
-.related-campaigns{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px}
-.related-card{background:#fff;border-radius:16px;overflow:hidden;border:1.5px solid #E8EBED;transition:all .3s;cursor:pointer;text-decoration:none;color:inherit;display:block;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.related-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12);border-color:#17a697}
-.related-image-wrapper{width:100%;aspect-ratio:16/9;overflow:hidden;background:#F8FAFB}
+/* Related campaigns */
+.related-campaigns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.related-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #EAEAEA;transition:all .2s;cursor:pointer;text-decoration:none;color:inherit;display:flex;gap:10px;padding:10px}
+.related-card:active{background:#F8FAFB}
+.related-image-wrapper{width:90px;height:60px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#F8FAFB}
 .related-image,.related-emoji{width:100%;height:100%;object-fit:cover}
-.related-emoji{display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#667eea,#764ba2)}
-.related-content{padding:16px}
-.related-title{font-size:14px;font-weight:600;margin-bottom:12px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#1F1F1F}
-.related-progress{height:6px;background:#F0F2F4;border-radius:10px;overflow:hidden;margin-bottom:12px}
-.related-progress-fill{height:100%;background:linear-gradient(90deg,#17a697,#1bc9b5);border-radius:10px;transition:width .5s ease}
-.related-stats{display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.related-amount{font-weight:700;color:#17a697;font-size:13px}
-.related-organizer{color:#6B7280;display:flex;align-items:center;gap:4px;font-size:11px}
-@media(max-width:768px){
-.content{padding:20px 16px 100px}
-.campaign-title{font-size:24px}
-.card{padding:24px 20px}
-.stat{padding:16px 12px}
-.stat-value{font-size:13px}
-.stats{gap:10px}
-.modal-content{margin:12px;max-height:95vh}
-.modal-body{padding:14px 16px}
-.share-buttons{gap:10px}
-.share-btn{font-size:12px;padding:12px}
-.donate-button{padding:14px 16px;max-width:100%}
-.donation-item{padding:14px}
-.donation-avatar{width:40px;height:40px;font-size:14px}
-.related-campaigns{grid-template-columns:1fr}
-.slider-btn{width:36px;height:36px;font-size:16px}
-.slider-dots{bottom:50px}
-.media-counter{top:12px;right:12px;padding:4px 10px;font-size:11px}
-}
-@media(max-width:480px){
-.header{padding:16px 20px}
-.campaign-title{font-size:22px}
-.stat-value{font-size:12px}
-.stats{gap:8px}
-.stat{padding:12px 8px}
-.share-buttons{grid-template-columns:1fr;gap:8px}
-}
+.related-emoji{display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(135deg,#667eea,#764ba2)}
+.related-content{flex:1;min-width:0}
+.related-title{font-size:12px;font-weight:600;margin-bottom:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#1F1F1F}
+.related-progress{height:4px;background:#EAEAEA;border-radius:10px;overflow:hidden;margin-bottom:6px}
+.related-progress-fill{height:100%;background:#17a697;border-radius:10px}
+.related-stats{display:flex;justify-content:space-between;align-items:center}
+.related-amount{font-weight:700;color:#17a697;font-size:12px}
+.related-organizer{color:#9CA3AF;display:flex;align-items:center;gap:3px;font-size:10px}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;box-shadow:0 -1px 0 #EAEAEA,0 -4px 12px rgba(0,0,0,.05);display:flex;justify-content:space-around;padding:4px 0 6px;z-index:1000;border-top:1px solid #F0F0F0}
+.nav-item{text-align:center;color:#888;font-size:9px;flex:1;padding:6px 4px;cursor:pointer;background:none;border:none;font-family:Poppins,sans-serif;text-decoration:none;display:block}
+.nav-item.active{color:#17a697}
+.nav-icon{font-size:18px;margin-bottom:2px}
+/* Kolaborasi bottom sheet */
+.kolaborasi-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:flex-end;justify-content:center}
+.kolaborasi-modal-overlay.show{display:flex}
+.kolaborasi-modal-box{background:#fff;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:24px 20px 32px;animation:slideUp .28s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.kolaborasi-modal-handle{width:36px;height:4px;background:#DDD;border-radius:4px;margin:0 auto 20px}
+.kolaborasi-modal-icon{width:52px;height:52px;background:linear-gradient(135deg,#17a697,#0f7a6e);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin:0 auto 12px}
+.kolaborasi-modal-title{font-size:15px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:8px}
+.kolaborasi-modal-text{font-size:13px;color:#666;text-align:center;line-height:1.6;margin-bottom:18px}
+.kolaborasi-wa-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;background:#25D366;color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;text-decoration:none;margin-bottom:8px}
+.kolaborasi-cancel-btn{display:block;width:100%;padding:11px;background:#F5F5F5;color:#555;border:none;border-radius:11px;font-size:13px;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer}
 </style>
 </head>
 <body>
@@ -956,10 +911,13 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 </div>
 </div>
 <?php endif; ?>
+<div class="card">
+<div class="section-title"><i class="fas fa-share-alt"></i> Bagikan Kampanye</div>
 <div class="share-buttons">
 <button class="share-btn" onclick="shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
 <button class="share-btn" onclick="shareFacebook()"><i class="fab fa-facebook"></i> Facebook</button>
 <button class="share-btn" onclick="copyLink()"><i class="fas fa-link"></i> Salin Link</button>
+</div>
 </div>
 </div>
 
@@ -1012,16 +970,12 @@ $rc_progress = $rc_target > 0 ? min(100, round(($rc_terkumpul / $rc_target) * 10
 </div>
 <div class="form-group">
 <label>Metode Pembayaran <span class="required">*</span></label>
-<div class="payment-methods" id="paymentChannelsContainer">
-<div class="payment-group-title">Layanan Khusus</div>
-<label class="payment-method payment-method-pickup">
-<input type="radio" name="payment_method" value="JEMPUT_DONASI" data-fee-flat="0" data-fee-percent="0" onchange="updateSummary()" required>
-<div class="payment-method-info">
-<div class="payment-method-name">Jemput Donasi</div>
-<div class="payment-method-fee">Tim kami akan menghubungi Anda untuk penjemputan donasi.</div>
-</div>
-<i class="fas fa-motorcycle payment-method-logo" style="font-size:20px;color:#17a697;display:flex;align-items:center;justify-content:center;"></i>
-</label>
+<button type="button" class="select-payment-btn" id="selectPaymentBtn" onclick="togglePaymentPicker()">
+<span id="selectedMethodText"><i class="fas fa-credit-card"></i> Pilih Metode Pembayaran</span>
+<i class="fas fa-chevron-down"></i>
+</button>
+<div class="payment-picker" id="paymentPicker">
+<div class="payment-methods" id="paymentChannelsContainer"></div>
 </div>
 </div>
 <div class="summary-box">
@@ -1052,11 +1006,30 @@ let paymentChannels=[],paymentChannelsLoaded=false,currentTransaction=null;
 
 function openDonateModal(){
 document.getElementById('donateModal').classList.add('show');
+}
+function closeDonateModal(){
+document.getElementById('donateModal').classList.remove('show');
+const picker=document.getElementById('paymentPicker');
+const btn=document.getElementById('selectPaymentBtn');
+if(picker)picker.classList.remove('open');
+if(btn){btn.classList.remove('open');document.getElementById('selectedMethodText').innerHTML='<i class="fas fa-credit-card"></i> Pilih Metode Pembayaran';}
+}
+
+function togglePaymentPicker(){
+const btn=document.getElementById('selectPaymentBtn');
+const picker=document.getElementById('paymentPicker');
+const isOpen=picker.classList.contains('open');
+if(!isOpen){
+picker.classList.add('open');
+btn.classList.add('open');
 if(!paymentChannelsLoaded){
 loadPaymentChannels();
 }
+}else{
+picker.classList.remove('open');
+btn.classList.remove('open');
 }
-function closeDonateModal(){document.getElementById('donateModal').classList.remove('show')}
+}
 function closePaymentModal(){document.getElementById('paymentModal').classList.remove('show');if(currentTransaction)location.reload()}
 
 function loadPaymentChannels(){
@@ -1072,14 +1045,13 @@ paymentChannels=data.data;
 renderPaymentChannels(paymentChannels);
 }else{
 console.error('get_channels tidak mengembalikan data yang valid',data);
-// Biarkan fallback Jemput Donasi (HTML statis) tetap tampil
-document.getElementById('paymentChannelsContainer').innerHTML=document.getElementById('paymentChannelsContainer').innerHTML;
+renderPaymentChannels([]);
 }
 })
 .catch(e=>{
 console.error('loadPaymentChannels error',e);
 paymentChannelsLoaded=true;
-// Biarkan fallback Jemput Donasi tetap tampil
+renderPaymentChannels([]);
 });
 }
 
@@ -1138,18 +1110,19 @@ document.querySelectorAll('.payment-method').forEach(x=>x.classList.remove('acti
 this.classList.add('active');
 this.querySelector('input[type="radio"]').checked=true;
 updateSummary();
+// Tutup picker dan update tombol
+const name=this.querySelector('.payment-method-name').textContent;
+const imgEl=this.querySelector('img.payment-method-logo');
+const iconEl=this.querySelector('i.payment-method-logo');
+let iconHtml='';
+if(imgEl){iconHtml=`<img src="${imgEl.src}" style="height:18px;margin-right:6px;vertical-align:middle;border-radius:3px">`;}
+else if(iconEl){iconHtml='<i class="fas fa-motorcycle" style="margin-right:6px;color:#17a697"></i>';}
+document.getElementById('selectedMethodText').innerHTML=iconHtml+name;
+document.getElementById('paymentPicker').classList.remove('open');
+document.getElementById('selectPaymentBtn').classList.remove('open');
 });
 });
 }
-
-// Muat metode pembayaran segera setelah halaman siap
-document.addEventListener('DOMContentLoaded',function(){
-    try{
-        loadPaymentChannels();
-    }catch(e){
-        console.error('init loadPaymentChannels error',e);
-    }
-});
 
 function updateSummary(){
 const amt=parseInt(document.getElementById('amount').value)||0;
@@ -1183,7 +1156,7 @@ if(method==='JEMPUT_DONASI'){
 const name=(document.querySelector('input[name="donor_name"]').value||'').trim();
 const phone=(document.querySelector('input[name="donor_phone"]').value||'').trim();
 const message=(document.querySelector('textarea[name="message"]').value||'').trim();
-let text=\"Assalamu'alaikum, ada donatur yang ingin dijemput donasinya.%0A%0A\";
+let text="Assalamu'alaikum, ada donatur yang ingin dijemput donasinya.%0A%0A";
 text+=`*Nama*: ${name||'-'}%0A`;
 text+=`*No. WA Donatur*: ${phone||'-'}%0A`;
 text+=`*Kampanye*: ${CAMPAIGN_TITLE||'-'}%0A`;
@@ -1414,6 +1387,41 @@ const pm=document.getElementById('paymentModal');
 if(e.target===dm)closeDonateModal();
 if(e.target===pm)closePaymentModal()
 }
+
+function showKolaborasiModal(){document.getElementById('kolaborasiModalDetail').classList.add('show')}
+function hideKolaborasiModal(){document.getElementById('kolaborasiModalDetail').classList.remove('show')}
 </script>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <a href="index.php" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-home"></i></div>
+        <div>Beranda</div>
+    </a>
+    <a href="pencariankampanye.php" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-search"></i></div>
+        <div>Jelajah</div>
+    </a>
+    <button class="nav-item" onclick="showKolaborasiModal()">
+        <div class="nav-icon"><i class="fas fa-handshake"></i></div>
+        <div>Kolaborasi</div>
+    </button>
+</nav>
+
+<!-- Kolaborasi Modal -->
+<div class="kolaborasi-modal-overlay" id="kolaborasiModalDetail" onclick="hideKolaborasiModal()">
+    <div class="kolaborasi-modal-box" onclick="event.stopPropagation()">
+        <div class="kolaborasi-modal-handle"></div>
+        <div class="kolaborasi-modal-icon"><i class="fas fa-handshake"></i></div>
+        <div class="kolaborasi-modal-title">Ingin Berkolaborasi?</div>
+        <div class="kolaborasi-modal-text">Untuk bergabung sebagai mitra atau mengelola kampanye, silakan hubungi admin kami melalui WhatsApp.</div>
+        <a href="https://wa.me/6282378229912?text=Halo%20Admin%20KolaborAksi%2C%20saya%20ingin%20berkolaborasi." class="kolaborasi-wa-btn" target="_blank">
+            <i class="fab fa-whatsapp" style="font-size:18px"></i>
+            Hubungi 0823-7822-9912
+        </a>
+        <button class="kolaborasi-cancel-btn" onclick="hideKolaborasiModal()">Tutup</button>
+    </div>
+</div>
+
 </body>
 </html>
